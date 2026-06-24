@@ -1,0 +1,5 @@
+# 在此粘贴你的 DeepSeek API 密钥（注册地址：https://platform.deepseek.com/api_keys）
+# 注意：每行 # 开头的都是注释，程序会自动忽略
+# 示例格式（去掉 # 号）：
+# sk-abcdefghijklmnopqrstuvwxyz123456
+sk-64c402f44a404943b52d9f2a377cfb6f

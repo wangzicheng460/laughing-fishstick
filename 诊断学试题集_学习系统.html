@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>诊断学试题集 - 辅助学习系统</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;background:#f0f2f5;color:#333;min-height:100vh;}
+.header{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;padding:20px;text-align:center;}
+.header h1{font-size:24px;margin-bottom:5px;}
+.header p{font-size:14px;opacity:0.9;}
+.container{max-width:900px;margin:0 auto;padding:16px;}
+.home-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin:20px 0;}
+.exam-card{background:white;border-radius:12px;padding:20px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.08);transition:all 0.3s;text-align:center;}
+.exam-card:hover{transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,0,0,0.12);}
+.exam-card .score{font-size:28px;font-weight:bold;color:#667eea;margin:8px 0;}
+.exam-card .label{font-size:13px;color:#999;}
+.exam-card .badge{display:inline-block;padding:2px 10px;border-radius:10px;font-size:12px;margin-top:8px;}
+.badge-done{background:#e8f5e9;color:#2e7d32;}
+.badge-partial{background:#fff3e0;color:#e65100;}
+.badge-none{background:#f5f5f5;color:#999;}
+.stats-bar{background:white;border-radius:10px;padding:16px;margin:16px 0;display:flex;justify-content:space-around;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,0.06);flex-wrap:wrap;}
+.stat-item{flex:1;min-width:60px;padding:4px;}
+.stat-num{font-size:22px;font-weight:bold;color:#667eea;}
+.stat-label{font-size:12px;color:#999;margin-top:2px;}
+.toolbar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center;}
+.toolbar button{padding:8px 18px;border:none;border-radius:8px;cursor:pointer;font-size:14px;transition:all 0.2s;}
+.btn-back{background:#e8eaf6;color:#3949ab;}
+.btn-back:hover{background:#c5cae9;}
+.btn-check{background:#667eea;color:white;}
+.btn-check:hover{background:#5a6fd6;}
+.btn-check:disabled{background:#ccc;cursor:not-allowed;}
+.btn-answer{background:#fff8e1;color:#f57f17;border:1px solid #ffecb3;}
+.btn-answer:hover{background:#ffecb3;}
+.btn-answer.active{background:#ffecb3;border-color:#f57f17;}
+.btn-reset{background:#ffebee;color:#c62828;}
+.btn-reset:hover{background:#ffcdd2;}
+.btn-review{background:#fff3e0;color:#e65100;}
+.btn-review:hover{background:#ffe0b2;}
+.btn-explain{background:#e3f2fd;color:#1565c0;}
+.btn-explain:hover{background:#bbdefb;}
+.btn-ai{background:#f3e5f5;color:#7b1fa2;}
+.btn-ai:hover{background:#e1bee7;}
+.ai-box{background:#f8f9ff;border-radius:10px;padding:14px;margin-top:10px;border:1px solid #e0e0ff;font-size:14px;line-height:1.8;display:none;}
+.ai-box.show{display:block;}
+.ai-box .loading{color:#999;text-align:center;padding:10px;}
+.ai-box .content{white-space:pre-wrap;color:#333;}
+.ai-box .error{color:#c62828;font-size:13px;white-space:pre-wrap;}
+.ai-box .hl-bar{text-align:right;margin-bottom:6px;display:none;}
+.ai-box.show .hl-bar{display:block;}
+.ai-box .hl-btn{background:transparent;border:1px solid #ddd;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:12px;color:#999;transition:all 0.2s;}
+.ai-box .hl-btn:hover{background:#fff8e1;border-color:#FFD54F;color:#F57F17;}
+.ai-box .hl-btn.active{background:#FFEB3B;border-color:#FFD54F;color:#333;}
+.ai-box .hl-btn.erase{color:#999;}
+.ai-box .hl-btn.erase:hover{background:#ffebee;border-color:#ef9a9a;color:#c62828;}
+.ai-box .hl-btn.erase.active{background:#ef9a9a;border-color:#ef9a9a;color:#fff;}
+mark{background:#FFF9C4;padding:0 2px;border-radius:1px;color:inherit;}
+.ai-box .hl-hint{font-size:11px;color:#bbb;text-align:right;margin-top:4px;display:none;}
+.ai-box .hl-hint.show{display:block;}
+.toolbar .spacer{flex:1;}
+.toolbar .q-progress{font-size:14px;color:#666;display:flex;align-items:center;gap:8px;}
+.q-progress select{padding:4px 8px;border-radius:6px;border:1px solid #ddd;font-size:14px;max-height:300px;}
+.q-card{background:white;border-radius:12px;padding:24px;box-shadow:0 2px 8px rgba(0,0,0,0.08);margin-bottom:16px;}
+.q-number{display:inline-block;background:#667eea;color:white;padding:2px 12px;border-radius:12px;font-size:13px;margin-bottom:12px;}
+.q-type{display:inline-block;background:#f0f0f0;color:#666;padding:2px 10px;border-radius:10px;font-size:12px;margin-left:8px;}
+.q-text{font-size:16px;line-height:1.7;margin-bottom:16px;color:#222;white-space:pre-wrap;}
+.options{list-style:none;}
+.option-item{padding:12px 16px;margin-bottom:8px;border:2px solid #e8e8e8;border-radius:10px;cursor:pointer;transition:all 0.2s;display:flex;align-items:flex-start;gap:10px;}
+.option-item:hover{border-color:#b0bec5;background:#fafafa;}
+.option-item .letter{display:inline-flex;width:28px;height:28px;border-radius:50%;background:#f5f5f5;align-items:center;justify-content:center;font-weight:bold;font-size:13px;flex-shrink:0;}
+.option-item .text{flex:1;line-height:1.5;white-space:pre-wrap;}
+.option-item.selected{border-color:#667eea;background:#f4f5ff;}
+.option-item.selected .letter{background:#667eea;color:white;}
+.option-item.correct{border-color:#4caf50;background:#e8f5e9;}
+.option-item.correct .letter{background:#4caf50;color:white;}
+.option-item.wrong{border-color:#f44336;background:#ffebee;}
+.option-item.wrong .letter{background:#f44336;color:white;}
+.option-item.missed{border-color:#ff9800;background:#fff3e0;}
+.option-item.missed .letter{background:#ff9800;color:white;}
+.option-item.show-ans{border-color:#4caf50;background:#e8f5e9;}
+.option-item.show-ans .letter{background:#4caf50;color:white;}
+.option-item.disabled{cursor:default;opacity:0.9;}
+.feedback{margin-top:16px;padding:16px;border-radius:10px;font-size:14px;display:none;}
+.feedback.show{display:block;}
+.feedback.correct{background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;}
+.feedback.wrong{background:#ffebee;color:#c62828;border:1px solid #ef9a9a;}
+.feedback .ans-detail{margin-top:8px;padding-top:8px;border-top:1px solid rgba(0,0,0,0.1);font-size:13px;}
+.wrong-list{list-style:none;}
+.wrong-item{background:white;border-radius:10px;padding:16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,0.06);}
+.wrong-item .q{font-weight:500;margin-bottom:8px;line-height:1.5;}
+.wrong-item .detail{font-size:13px;color:#666;}
+.wrong-item .detail span.wrong-ans{color:#f44336;font-weight:bold;}
+.wrong-item .detail span.right-ans{color:#4caf50;font-weight:bold;}
+.switch-group{display:flex;background:#f0f0f0;border-radius:10px;padding:3px;}
+.switch-group button{padding:8px 18px;border:none;border-radius:8px;cursor:pointer;font-size:13px;background:transparent;color:#666;transition:all 0.2s;}
+.switch-group button.active{background:white;color:#333;box-shadow:0 1px 3px rgba(0,0,0,0.1);}
+.empty-state{text-align:center;padding:60px 20px;color:#999;}
+.empty-state .icon{font-size:48px;margin-bottom:12px;}
+.empty-state p{font-size:15px;}
+.progress-bar{height:4px;background:#e0e0e0;border-radius:2px;margin-bottom:16px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,#667eea,#764ba2);transition:width 0.3s;border-radius:2px;width:0%;}
+@media (max-width:600px){.home-grid{grid-template-columns:repeat(2,1fr);gap:10px;}.exam-card{padding:14px;}.exam-card .score{font-size:22px;}.q-card{padding:16px;}.option-item{padding:10px 12px;}.toolbar{gap:6px;}.toolbar button{padding:6px 12px;font-size:13px;}.stats-bar{padding:10px;}.stat-num{font-size:18px;}}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>📚 诊断学试题集</h1>
+  <p>共 8 套模拟试题 · 选择答案判断正误 · 查看错题巩固</p>
+</div>
+<div class="container" id="app">
+  <div class="empty-state"><div class="icon">⏳</div><p>正在加载题库数据...</p></div>
+</div>
+
+<script>
+// Data (loaded from JSON file)
+var Q = {}, A = {}, EN = [];
+
+// State
+var st = {curExam: null, curQ: 0, answers: {}, checked: {}, explanations: {}, showAnswers: {}, wrongOnly: false, mode: 'exam'};
+try { var sv = localStorage.getItem('ds'); if (sv) { var p = JSON.parse(sv); st.answers = p.answers || {}; st.checked = p.checked || {}; st.explanations = p.explanations || {}; st.showAnswers = p.showAnswers || {}; } } catch(e) {}
+function save() { try { localStorage.setItem('ds', JSON.stringify({answers: st.answers, checked: st.checked, explanations: st.explanations, showAnswers: st.showAnswers})); } catch(e) {} }
+
+// Labels
+var S = {
+  total: '总题数', done: '已答题', correct: '正确', wrong: '错题', rate: '正确率',
+  all: '全部', ow: '仅错题', check: '判断正误', cked: '已判断',
+  reset: '重置', back: '← 返回', prev: '← 上一题', next: '下一题 →',
+  ca: '正确答案：', ya: '你的答案：', nodata: '暂无题目数据',
+  nw: '✅ 没有错题！', cf: '✅ 回答正确！', wf: '❌ 回答错误',
+  s: '单选题', m: '多选题', ns: '未开始', pg: '进行中',
+  d2: '已完成', ws: '错题集', na: '未作答', cl: '清空',
+  gp: '去练习', emp: '暂无错题，继续加油！', sel: '请先选择一个答案！',
+  c1: '确定要重置当前套题的答题记录吗？', c2: '确定要清空所有错题记录吗？这将清除所有答题记录。'
+};
+
+function gn(i) { return EN[i-1] || '模拟试题' + i; }
+function ga(e, q) { return (A[String(e)] || {})[String(q)] || ''; }
+function gq(e) { return Q[String(e)] || []; }
+function im(a) { return a && a.length > 1 && /^[A-E]+$/.test(a); }
+function n(a) { return (a||'').toUpperCase().split('').sort().join(''); }
+function ic(e, q) { var u = (st.answers[e]||{})[q] || '', c = ga(e, q); return u ? n(u) === n(c) : null; }
+function ges(e) { var qs = gq(e), t = qs.length, d = 0, c = 0; for (var i = 0; i < qs.length; i++) { var q = qs[i]; if ((st.checked[e]||{})[q.id]) { d++; if (ic(e, q.id)) c++; } } return {total: t, done: d, correct: c, wrong: d - c}; }
+function ggs() { var t = 0, d = 0, c = 0; for (var i = 1; i <= 8; i++) { var s = ges(i); t += s.total; d += s.done; c += s.correct; } return {total: t, done: d, correct: c, wrong: d - c}; }
+
+function r() { var ap = document.getElementById('app'); if (st.mode === 'exam' && st.curExam === null) rh(ap); else if (st.mode === 'exam') re(ap); else rw(ap); }
+
+function rh(c) {
+  var g = ggs(), h = '<div class="stats-bar">' +
+    '<div class="stat-item"><div class="stat-num">' + g.total + '</div><div class="stat-label">' + S.total + '</div></div>' +
+    '<div class="stat-item"><div class="stat-num">' + g.done + '</div><div class="stat-label">' + S.done + '</div></div>' +
+    '<div class="stat-item"><div class="stat-num" style="color:#4caf50">' + g.correct + '</div><div class="stat-label">' + S.correct + '</div></div>' +
+    '<div class="stat-item"><div class="stat-num" style="color:#f44336">' + g.wrong + '</div><div class="stat-label">' + S.wrong + '</div></div>' +
+    '<div class="stat-item"><div class="stat-num">' + (g.done ? Math.round(g.correct/g.done*100) + '%' : '-') + '</div><div class="stat-label">' + S.rate + '</div></div></div><div class="home-grid">';
+  for (var i = 1; i <= 8; i++) {
+    var s = ges(i), pct = s.done ? Math.round(s.correct/s.done*100) : 0;
+    var bg = '<span class="badge badge-none">' + S.ns + '</span>', stxt = '-';
+    if (s.done === s.total && s.total > 0) { bg = '<span class="badge badge-done">' + S.d2 + '</span>'; stxt = s.correct + '/' + s.total; }
+    else if (s.done > 0) { bg = '<span class="badge badge-partial">' + S.pg + '</span>'; stxt = s.correct + '/' + s.total; }
+    h += '<div class="exam-card" onclick="ee(' + i + ')"><div style="font-weight:600;font-size:15px;margin-bottom:4px;">' + gn(i) + '</div><div class="score">' + stxt + '</div><div class="label">' + S.rate + ': ' + (s.done ? pct + '%' : '-') + '</div>' + bg + '</div>';
+  }
+  h += '</div>';
+  if (g.wrong > 0) h += '<div style="text-align:center;margin-top:16px;"><button class="btn-review" onclick="ew()" style="padding:12px 32px;font-size:16px;">📝 ' + S.ws + ' (' + g.wrong + ' ' + S.wrong + ')</button></div>';
+  h += '<div style="background:white;border-radius:10px;padding:16px;margin-top:16px;box-shadow:0 1px 4px rgba(0,0,0,0.06);font-size:13px;color:#666;line-height:1.6;">';
+  h += '<div style="font-weight:600;color:#333;margin-bottom:8px;">🤖 AI 解析使用方法</div>';
+  h += '<div>1. 打开终端，运行：<code style="background:#f0f0f0;padding:1px 6px;border-radius:4px;">python ai_server.py</code></div>';
+  h += '<div>2. 如果提示需要 API 密钥，去 <a href="https://platform.deepseek.com/api_keys" target="_blank" style="color:#667eea;">platform.deepseek.com</a> 注册获取</div>';
+  h += '<div>3. 将密钥填入 <code style="background:#f0f0f0;padding:1px 6px;border-radius:4px;">api_key.txt</code></div>';
+  h += '<div>4. 在浏览器打开 <b><a href="http://localhost:5001/app" target="_blank" style="color:#667eea;">http://localhost:5001/app</a></b></div>';
+  h += '<div>5. 答题后点击 <b>🤖 AI解析</b> 按钮即可</div>';
+  h += '</div>';
+  c.innerHTML = h;
+}
+
+function re(c) {
+  var e = st.curExam, qs = gq(e);
+  if (qs.length === 0) { c.innerHTML = '<div class="empty-state"><p>' + S.nodata + '</p></div>'; return; }
+  if (st.wrongOnly) qs = qs.filter(function(q) { return (st.checked[e]||{})[q.id] && !ic(e, q.id); });
+  if (qs.length === 0) { c.innerHTML = '<div class="toolbar"><button class="btn-back" onclick="ex()">' + S.back + '</button><span style="color:#4caf50;font-weight:500;">' + S.nw + '</span></div>'; return; }
+  if (st.curQ >= qs.length) st.curQ = 0;
+  var q = qs[st.curQ], s = ges(e), ca = ga(e, q.id), ima = im(ca);
+  var ua = (st.answers[e]||{})[q.id] || '', ich = (st.checked[e]||{})[q.id] || false, res = ich ? ic(e, q.id) : null;
+  var pct = s.total > 0 ? Math.round(s.done/s.total*100) : 0;
+
+  var h = '<div class="toolbar"><button class="btn-back" onclick="ex()">' + S.back + '</button><button class="btn-review" onclick="ew()">📝 ' + S.wrong + '</button><button class="btn-answer' + ((st.showAnswers[e]||{})[q.id] ? ' active' : '') + '" onclick="tsa()">👁 答案</button><div class="spacer"></div><div class="q-progress"><span>' + gn(e) + '</span><span style="color:#999;font-size:12px;">' + s.correct + '/' + s.done + '/' + s.total + '</span></div></div>' +
+    '<div class="progress-bar"><div class="progress-fill" style="width:' + pct + '%"></div></div>' +
+    '<div class="toolbar"><div class="switch-group"><button class="' + (!st.wrongOnly?'active':'') + '" onclick="tw(false)">' + S.all + '</button><button class="' + (st.wrongOnly?'active':'') + '" onclick="tw(true)">' + S.ow + '</button></div><div class="spacer"></div><select onchange="jt(parseInt(this.value))" style="max-width:200px;">';
+  for (var i = 0; i < qs.length; i++) {
+    var mk = (st.checked[e]||{})[qs[i].id] ? (ic(e, qs[i].id) ? '✅' : '❌') : '○';
+    h += '<option value="' + i + '" ' + (i === st.curQ ? 'selected' : '') + '>' + qs[i].id + '. ' + mk + '</option>';
+  }
+  h += '</select><button class="btn-check" onclick="ca2()"' + (ich ? ' disabled' : '') + '>' + (ich ? S.cked : S.check) + '</button><button class="btn-reset" onclick="rs()">' + S.reset + '</button></div>' +
+    '<div class="q-card"><div><span class="q-number">第 ' + q.id + ' 题</span><span class="q-type">' + (ima ? S.m : S.s) + '</span></div><div class="q-text">' + q.question + '</div><ul class="options">';
+  for (var i = 0; i < q.options.length; i++) {
+    var o = q.options[i], sel = ua.includes(o[0]), cl = '';
+    var showAns = (st.showAnswers[e]||{})[q.id];
+    if (sel && !ich) cl = 'selected';
+    else if (ich) { if (sel && res) cl = 'correct'; else if (sel && !res) cl = 'wrong'; else if (!sel && ca.includes(o[0])) cl = 'missed'; }
+    if (ich) cl += ' disabled';
+    if (showAns && ca.includes(o[0])) cl += ' show-ans';
+    h += '<li class="option-item ' + cl + '" onclick="' + (ich ? '' : "to('" + o[0] + "')") + '"><span class="letter">' + o[0] + '</span><span class="text">' + o[1] + '</span></li>';
+  }
+  h += '</ul>';
+  if (ich) h += '<div class="feedback show ' + (res?'correct':'wrong') + '">' + (res ? S.cf : S.wf) + '<div class="ans-detail"><strong>' + S.ca + '</strong>' + ca + '</div><div class="ans-detail"><strong>' + S.ya + '</strong>' + (ua || S.na) + '</div><div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;"><button class="btn-explain" onclick="se(\'' + (q.question||'').replace(/['\\]/g, '\\$&').substring(0, 80) + '\')" style="padding:6px 16px;border:none;border-radius:6px;cursor:pointer;font-size:13px;">🔍 搜解析</button><button class="btn-ai" onclick="ai_explain(' + e + ',' + q.id + ')" style="padding:6px 16px;border:none;border-radius:6px;cursor:pointer;font-size:13px;">🤖 AI解析</button></div><div id="explain-' + e + '-' + q.id + '" class="ai-box"></div></div>';
+  h += '</div><div style="display:flex;gap:10px;justify-content:center;margin-top:8px;"><button class="btn-back" onclick="pq()"' + (st.curQ === 0 ? ' disabled' : '') + ' style="padding:10px 24px;">' + S.prev + '</button><button class="btn-back" onclick="nq()"' + (st.curQ >= qs.length-1 ? ' disabled' : '') + ' style="padding:10px 24px;">' + S.next + '</button></div>';
+  c.innerHTML = h;
+  // Auto-show cached explanations for checked questions
+  if (ich) { setTimeout(function() { showCachedExplanations(e, q.id); }, 10); }
+}
+
+function rw(c) {
+  var items = [];
+  for (var e = 1; e <= 8; e++) { for (var j = 0; j < (Q[String(e)]||[]).length; j++) { var q = Q[String(e)][j]; if ((st.checked[e]||{})[q.id] && !ic(e, q.id)) items.push({eid: e, en: gn(e), q: q, ua: (st.answers[e]||{})[q.id]||'', ca: ga(e, q.id)}); } }
+  var h = '<div class="toolbar"><button class="btn-back" onclick="exw()">' + S.back + '</button><div class="spacer"></div><span style="font-size:14px;color:#666;">共 ' + items.length + ' ' + S.wrong + '</span><button class="btn-reset" onclick="ca3()" style="margin-left:8px;">' + S.cl + '</button></div>';
+  if (items.length === 0) h += '<div class="empty-state"><div class="icon">🎉</div><p>' + S.emp + '</p></div>';
+  else {
+    h += '<ul class="wrong-list">';
+    for (var i = 0; i < items.length; i++) { var it = items[i]; h += '<li class="wrong-item"><div class="q">[' + it.en + '] 第 ' + it.q.id + ' 题：' + it.q.question + '</div><div class="detail">你的答案：<span class="wrong-ans">' + (it.ua || S.na) + '</span> | ' + S.ca + '<span class="right-ans">' + it.ca + '</span></div><div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;"><button class="btn-back" onclick="ee(' + it.eid + ');setTimeout(function(){ jtq(' + it.q.id + ') },100)" style="font-size:12px;padding:4px 12px;">' + S.gp + '</button><button class="btn-explain" onclick="se_q(' + it.eid + ',' + it.q.id + ')" style="font-size:12px;padding:4px 12px;border:none;border-radius:6px;cursor:pointer;">🔍 搜解析</button><button class="btn-ai" onclick="ai_explain(' + it.eid + ',' + it.q.id + ')" style="font-size:12px;padding:4px 12px;border:none;border-radius:6px;cursor:pointer;">🤖 AI解析</button></div><div id="explain-' + it.eid + '-' + it.q.id + '" class="ai-box"></div></li>'; }
+    h += '</ul>';
+  }
+  c.innerHTML = h;
+  // Auto-show cached explanations for wrong items
+  setTimeout(function() {
+    for (var i = 0; i < items.length; i++) {
+      showCachedExplanations(items[i].eid, items[i].q.id);
+    }
+  }, 10);
+}
+
+function ee(id) { st.curExam = id; st.curQ = 0; st.wrongOnly = false; st.mode = 'exam'; r(); }
+function ex() { st.curExam = null; st.mode = 'exam'; r(); }
+function ew() { st.mode = 'wrong'; r(); }
+function exw() { st.mode = 'exam'; if (st.curExam === null) r(); else re(document.getElementById('app')); }
+function tw(v) { st.wrongOnly = v; st.curQ = 0; r(); }
+
+function to(l) {
+  var e = st.curExam, qs = gq(e);
+  if (st.wrongOnly) qs = qs.filter(function(q) { return (st.checked[e]||{})[q.id] && !ic(e, q.id); });
+  if (!qs.length) return;
+  var q = qs[st.curQ];
+  if (!st.answers[e]) st.answers[e] = {};
+  if (!st.answers[e][q.id]) st.answers[e][q.id] = '';
+  var cur = st.answers[e][q.id];
+  if (im(ga(e, q.id))) { cur = cur.includes(l) ? cur.replace(l, '') : cur + l; st.answers[e][q.id] = cur.split('').sort().join(''); }
+  else { st.answers[e][q.id] = l; }
+  save(); r();
+}
+
+function ca2() {
+  var e = st.curExam, qs = gq(e);
+  if (st.wrongOnly) qs = qs.filter(function(q) { return (st.checked[e]||{})[q.id] && !ic(e, q.id); });
+  if (!qs.length) return;
+  var q = qs[st.curQ];
+  if (!(st.answers[e]||{})[q.id]) { alert(S.sel); return; }
+  if (!st.checked[e]) st.checked[e] = {};
+  st.checked[e][q.id] = true;
+  save(); r();
+}
+
+function jt(i) { st.curQ = i; r(); }
+function jtq(qid) { var qs = gq(st.curExam); for (var i = 0; i < qs.length; i++) { if (qs[i].id === qid) { st.curQ = i; r(); return; } } }
+function pq() { if (st.curQ > 0) { st.curQ--; r(); } }
+function nq() { var e = st.curExam, qs = gq(e); if (st.wrongOnly) qs = qs.filter(function(q) { return (st.checked[e]||{})[q.id] && !ic(e, q.id); }); if (st.curQ < qs.length-1) { st.curQ++; r(); } }
+
+// Keyboard shortcuts: ← 上一题  → 下一题  A 显示答案
+document.addEventListener('keydown', function(e) {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+  if (st.mode !== 'exam' || st.curExam === null) return;
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); pq(); }
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); nq(); }
+  if (e.key === 'a' || e.key === 'A') { e.preventDefault(); tsa(); }
+});
+
+// Search explanation online
+function se(text) {
+  var q = encodeURIComponent(text.replace(/<[^>]*>/g, '').substring(0, 80));
+  window.open('https://www.baidu.com/s?wd=' + q, '_blank');
+}
+function se_q(eid, qid) {
+  var qs = gq(eid);
+  for (var i = 0; i < qs.length; i++) {
+    if (qs[i].id === qid) {
+      var txt = (qs[i].question || '').replace(/<[^>]*>/g, '').substring(0, 80);
+      window.open('https://www.baidu.com/s?wd=' + encodeURIComponent(txt), '_blank');
+      return;
+    }
+  }
+}
+
+// AI Explanation
+function ai_explain(eid, qid) {
+  var qs = gq(eid);
+  for (var i = 0; i < qs.length; i++) {
+    if (qs[i].id === qid) {
+      var q = qs[i];
+      var cid = 'explain-' + eid + '-' + qid;
+      var el = document.getElementById(cid);
+      if (!el) return;
+      // Toggle: if already loaded and visible, just show; if loading, do nothing
+      if (el.classList.contains('show')) {
+        el.classList.remove('show');
+        return;
+      }
+      // Check cache first
+      if (st.explanations[eid] && st.explanations[eid][qid]) {
+        el.classList.add('show');
+        el.setAttribute('data-loaded', 'true');
+        el.innerHTML = buildExplainBar(cid) + '<div class="content">' + st.explanations[eid][qid] + '</div>';
+        return;
+      }
+      if (el.getAttribute('data-loading') === 'true') return;
+      el.classList.add('show');
+      el.setAttribute('data-loading', 'true');
+      el.innerHTML = '<div class="loading">⏳ AI 正在解析中...</div>';
+      // Build options array
+      var opts = [];
+      for (var j = 0; j < (q.options||[]).length; j++) {
+        opts.push(q.options[j][0] + '. ' + q.options[j][1]);
+      }
+      var ca = ga(eid, qid);
+      var ua = (st.answers[eid]||{})[qid] || '';
+      // Call server
+      fetch('http://localhost:5001/explain', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          question: q.question || '',
+          options: opts,
+          answer: ca,
+          userAnswer: ua
+        })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        el.setAttribute('data-loading', 'false');
+        el.setAttribute('data-loaded', 'true');
+        if (data.success) {
+          // Save to cache (store as escaped HTML so highlights can be embedded safely)
+          if (!st.explanations[eid]) st.explanations[eid] = {};
+          var safeHtml = escHtml(data.explanation);
+          st.explanations[eid][qid] = safeHtml;
+          save();
+          el.innerHTML = buildExplainBar(cid) + '<div class="content">' + safeHtml + '</div>';
+        } else {
+          el.innerHTML = '<div class="error">' + escHtml(data.explanation) + '</div>';
+        }
+      })
+      .catch(function(err) {
+        el.setAttribute('data-loading', 'false');
+        el.innerHTML = '<div class="error">❌ 连接失败。\n\n请通过以下地址访问（不要直接双击 HTML 文件）：\n  http://localhost:5001/app\n\n确保服务器已运行：python ai_server.py</div>';
+      });
+      return;
+    }
+  }
+}
+
+// Auto-display cached explanations for checked questions
+function showCachedExplanations(eid, qid) {
+  if (st.explanations[eid] && st.explanations[eid][qid]) {
+    var el = document.getElementById('explain-' + eid + '-' + qid);
+    if (el && !el.classList.contains('show')) {
+      el.classList.add('show');
+      el.setAttribute('data-loaded', 'true');
+      var cid = 'explain-' + eid + '-' + qid;
+      el.innerHTML = buildExplainBar(cid) + '<div class="content">' + st.explanations[eid][qid] + '</div>';
+    }
+  }
+}
+
+function escHtml(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ---- 荧光笔 Highlight ----
+var hlActive = null; // id of explanation being highlighted
+var hlEraseActive = null; // id of explanation being erased
+
+function buildExplainBar(cid) {
+  return '<div class="hl-bar"><button class="hl-btn" onclick="toggleHL(\'' + cid + '\')">🖍 荧光笔</button><button class="hl-btn erase" onclick="toggleErase(\'' + cid + '\')">🧹 擦除</button></div>';
+}
+
+function toggleHL(cid) {
+  var el = document.getElementById(cid);
+  if (!el) return;
+  var btn = el.querySelector('.hl-btn');
+  if (hlActive === cid) {
+    hlActive = null;
+    if (btn) btn.classList.remove('active');
+    var h = el.querySelector('.hl-hint');
+    if (h) h.classList.remove('show');
+    document.body.style.cursor = '';
+    return;
+  }
+  // Deactivate previous highlight
+  if (hlActive) {
+    var prev = document.getElementById(hlActive);
+    if (prev) {
+      if (prev.querySelector('.hl-btn')) prev.querySelector('.hl-btn').classList.remove('active');
+      if (prev.querySelector('.hl-hint')) prev.querySelector('.hl-hint').classList.remove('show');
+    }
+  }
+  // Deactivate erase if active
+  if (hlEraseActive) {
+    var prevErase = document.getElementById(hlEraseActive);
+    if (prevErase) {
+      if (prevErase.querySelector('.hl-btn.erase')) prevErase.querySelector('.hl-btn.erase').classList.remove('active');
+      if (prevErase.querySelector('.hl-hint')) prevErase.querySelector('.hl-hint').classList.remove('show');
+    }
+    hlEraseActive = null;
+  }
+  hlActive = cid;
+  if (btn) btn.classList.add('active');
+  document.body.style.cursor = 'text';
+  var hint = el.querySelector('.hl-hint');
+  if (!hint) {
+    hint = document.createElement('div');
+    hint.className = 'hl-hint show';
+    hint.textContent = '💡 选中文字后松手即可高亮';
+    el.appendChild(hint);
+  } else {
+    hint.textContent = '💡 选中文字后松手即可高亮';
+    hint.classList.add('show');
+  }
+}
+
+function toggleErase(cid) {
+  var el = document.getElementById(cid);
+  if (!el) return;
+  var btn = el.querySelector('.hl-btn.erase');
+  if (hlEraseActive === cid) {
+    hlEraseActive = null;
+    if (btn) btn.classList.remove('active');
+    var h = el.querySelector('.hl-hint');
+    if (h) h.classList.remove('show');
+    document.body.style.cursor = '';
+    return;
+  }
+  // Deactivate previous erase
+  if (hlEraseActive) {
+    var prev = document.getElementById(hlEraseActive);
+    if (prev) {
+      if (prev.querySelector('.hl-btn.erase')) prev.querySelector('.hl-btn.erase').classList.remove('active');
+      if (prev.querySelector('.hl-hint')) prev.querySelector('.hl-hint').classList.remove('show');
+    }
+  }
+  // Deactivate highlight if active
+  if (hlActive) {
+    var prevHL = document.getElementById(hlActive);
+    if (prevHL) {
+      if (prevHL.querySelector('.hl-btn')) prevHL.querySelector('.hl-btn').classList.remove('active');
+      if (prevHL.querySelector('.hl-hint')) prevHL.querySelector('.hl-hint').classList.remove('show');
+    }
+    hlActive = null;
+  }
+  hlEraseActive = cid;
+  if (btn) btn.classList.add('active');
+  document.body.style.cursor = 'pointer';
+  var hint = el.querySelector('.hl-hint');
+  if (!hint) {
+    hint = document.createElement('div');
+    hint.className = 'hl-hint show';
+    hint.textContent = '💡 点击已高亮文字即可擦除';
+    el.appendChild(hint);
+  } else {
+    hint.textContent = '💡 点击已高亮文字即可擦除';
+    hint.classList.add('show');
+  }
+}
+
+// Handle mouse events for highlight/erase
+document.addEventListener('mouseup', function(e) {
+  // ----- Highlight mode: select text to highlight -----
+  if (hlActive) {
+    var el = document.getElementById(hlActive);
+    if (!el) return;
+    var contentEl = el.querySelector('.content');
+    if (!contentEl) return;
+
+    // Clicking on existing mark in highlight mode -> do nothing
+    if (e.target.tagName === 'MARK') {
+      window.getSelection().removeAllRanges();
+      return;
+    }
+
+    var sel = window.getSelection();
+    if (!sel.rangeCount || sel.isCollapsed) return;
+    var range = sel.getRangeAt(0);
+
+    // Check if selection is within this explanation's content
+    if (!contentEl.contains(range.commonAncestorContainer)) return;
+
+    try {
+      var mark = document.createElement('mark');
+      range.surroundContents(mark);
+      sel.removeAllRanges();
+      var parts = hlActive.split('-');
+      st.explanations[parts[1]][parts[2]] = contentEl.innerHTML;
+      save();
+    } catch(err) {
+      // Cross-node selection - extract and wrap
+      try {
+        var fragment = range.extractContents();
+        var mark = document.createElement('mark');
+        mark.appendChild(fragment);
+        range.insertNode(mark);
+        sel.removeAllRanges();
+        var parts = hlActive.split('-');
+        st.explanations[parts[1]][parts[2]] = contentEl.innerHTML;
+        save();
+      } catch(err2) {}
+    }
+    return;
+  }
+
+  // ----- Erase mode: click on highlight to remove -----
+  if (hlEraseActive) {
+    if (e.target.tagName !== 'MARK') return;
+    var el = document.getElementById(hlEraseActive);
+    if (!el) return;
+    var contentEl = el.querySelector('.content');
+    if (!contentEl || !contentEl.contains(e.target)) return;
+
+    var mk = e.target;
+    var parent = mk.parentNode;
+    while (mk.firstChild) {
+      parent.insertBefore(mk.firstChild, mk);
+    }
+    parent.removeChild(mk);
+    parent.normalize();
+    window.getSelection().removeAllRanges();
+    var parts = hlEraseActive.split('-');
+    st.explanations[parts[1]][parts[2]] = contentEl.innerHTML;
+    save();
+    return;
+  }
+});
+function rs() { if (!confirm(S.c1)) return; delete st.answers[st.curExam]; delete st.checked[st.curExam]; delete st.explanations[st.curExam]; delete st.showAnswers[st.curExam]; save(); st.curQ = 0; r(); }
+function ca3() { if (!confirm(S.c2)) return; st.answers = {}; st.checked = {}; st.explanations = {}; st.showAnswers = {}; save(); r(); }
+
+// Toggle show correct answer
+function tsa() {
+  var e = st.curExam, qs = gq(e);
+  if (!qs.length) return;
+  var q = qs[st.curQ];
+  if (!st.showAnswers[e]) st.showAnswers[e] = {};
+  st.showAnswers[e][q.id] = !st.showAnswers[e][q.id];
+  save(); r();
+}
+
+// Data loaded from inline JSON
+var __data = {"questions": {"1": [{"id": 1, "question": "患者胸廓前后径与横径之比为 1:1，肋骨与脊柱夹角大于 45°，应考虑为", "options": [["A", "正常胸廓"], ["B", "桶状胸"], ["C", "漏斗胸"], ["D", "扁平胸"], ["E", "鸡胸"]], "type": "single"}, {"id": 2, "question": "检查发现某患者呼吸由浅慢逐渐变深快，然后由深快转为浅慢，随之出现短时暂停,周 而复始，应诊断为", "options": [["A", "间停呼吸"], ["B", "叹息样呼吸"], ["C", "潮式呼吸"], ["D", "Kussmaul 呼吸"], ["E", "胸部剧痛引起的抑制性呼吸"]], "type": "single"}, {"id": 3, "question": "患者听诊发现肺部呼吸音呈柔和吹风样性质，吸气较强，音调较高，呼气较吸气持续时 间长，应判断为", "options": [["A", "正常肺泡呼吸音"], ["B", "正常支气管呼吸音"], ["C", "支气管肺泡呼吸音"], ["D", "肺泡呼吸音，呼吸时间延长"], ["E", "支气管呼吸音，呼吸时间延长"]], "type": "single"}, {"id": 4, "question": "慢性阻塞性肺气肿患者呼吸困难的特点是", "options": [["A", "吸气性呼吸困难"], ["B", "呼气性呼吸困难"], ["C", "阵发性呼吸困难"], ["D", "混合性呼吸困难"], ["E", "中毒性呼吸困难"]], "type": "single"}, {"id": 5, "question": "语音共振减弱见于", "options": [["A", "大叶性肺炎"], ["B", "肺结核空洞"], ["C", "肺梗死"], ["D", "阻塞性肺不张"], ["E", "肺脓肿"]], "type": "single"}, {"id": 6, "question": "诊断主动脉瓣关闭不全最重要的体征是", "options": [["A", "心尖区第一心音减弱"], ["B", "靴形心"], ["C", "主动脉瓣区舒张期杂音"], ["D", "心尖区 Austin Flint 杂音"], ["E", "水冲脉"]], "type": "single"}, {"id": 7, "question": "Graham Stell 杂音是指", "options": [["A", "器质性二尖瓣狭窄引起的心尖区舒张期杂音"], ["B", "主动脉瓣关闭不全引起的主动脉瓣区舒张期杂音"], ["C", "肺动脉瓣相对关闭不全引起的肺动脉瓣区舒张期杂音"], ["D", "二尖瓣相对性狭窄引起的心尖区舒张期杂音"], ["E", "三尖瓣相对性狭窄产生的舒张期杂音"]], "type": "single"}, {"id": 8, "question": "提示二尖瓣狭窄最可靠的体征是", "options": [["A", "第一心音亢进"], ["B", "肺动脉瓣区第二心音亢进"], ["C", "二尖瓣面容"], ["D", "心尖区听到隆隆样舒张期杂音"], ["E", "梨型心"]], "type": "single"}, {"id": 9, "question": "心包大量积液时可出现", "options": [["A", "水冲脉"], ["B", "颈静脉怒张"], ["C", "脉搏短绌"], ["D", "颈动脉明显搏动"], ["E", "Duroziez 双重杂音"]], "type": "single"}, {"id": 10, "question": "下列哪项对提示急性胃肠穿孔最有意义", "options": [["A", "腹部膨隆"], ["B", "腹部叩诊呈明显鼓音"], ["C", "肝浊音区消失"], ["D", "腹部压痛"], ["E", "腹肌紧张"]], "type": "single"}, {"id": 11, "question": "发热患者，体温在 39o", "options": [["C", "以上，每日波动 2～2.5oC，最低温度 37.6oC，应诊断为"], ["A", "稽留热"], ["B", "间歇热"], ["C", "弛张热"], ["D", "波状热"], ["E", "不规则发热"]], "type": "single"}, {"id": 12, "question": "下列哪项不正确", "options": [["A", "正常人肝脏可达右锁骨中线肋缘下 1cm"], ["B", "正常人肝脏可达剑尖下 3cm"], ["C", "正常人脾脏肋缘下可摸到"], ["D", "正常人可触及右肾下极"], ["E", "正常人左下腹部可摸及乙状结肠"]], "type": "single"}, {"id": 13, "question": "下列检验结果哪项是错误的", "options": [["A", "正常男性周围血红细胞数 4.0～5.0×1012/L"], ["B", "正常人周围血白细胞数 4～10×109/L"], ["C", "正常人红细胞沉降率<20mm/1h 末"], ["D", "正常人成熟红细胞与有核细胞之比为 1:1，粒细胞为 5:1"], ["E", "正常成年人周围血网织红细胞 0.5～1.5%"]], "type": "single"}, {"id": 14, "question": "下列检测结果哪项不正常", "options": [["A", "尿沉渣镜检 RBC2 个/HP"], ["B", "尿沉渣镜检 WBC4 个/HP"], ["C", "尿内偶见透明管型"], ["D", "尿胆红素定性试验阳性"], ["E", "尿胆原定性试验阳性"]], "type": "single"}, {"id": 15, "question": "男性，35 岁。肺功能检查发现第１秒时间肺活量占用力肺活量（FEV1%，即 1s 率）40%， 残气量/肺总量为 45%，血气分析正常，应诊断为", "options": [["A", "限制性通气功能障碍"], ["B", "阻塞性通气功能障碍"], ["C", "混合性通气功能障碍"], ["D", "弥散功能障碍"], ["E", "通气功能正常"]], "type": "single"}, {"id": 16, "question": "下列哪项不是漏出液的特点", "options": [["A", "比重＜1.018"], ["B", "能自凝"], ["C", "细胞计数<100×106/L"], ["D", "粘蛋白定性阴性"], ["E", "葡萄糖定量与血糖相近"]], "type": "single"}, {"id": 17, "question": "男性，43 岁，乏力、纳差 1 个月，皮肤、巩膜黄染 1 周，伴皮肤瘙痒。体格检查：巩 膜、皮肤明显黄染，心肺（-），腹平软，无压痛，肝肋下 2cm，触痛(+)，脾未扪及， 胆囊可触及。TB136umol/L，CB90umol/L，ALTl00U/L，ALP120U/L，GGT240U/L。本例 属哪一类型黄疸？", "options": [["A", "肝细胞性黄疸"], ["B", "溶血性黄疸"], ["C", "肝内胆汁淤积性黄疸"], ["D", "肝外胆汁淤积性黄疸"], ["E", "先天性黄疸"]], "type": "single"}, {"id": 18, "question": "下列哪项检查对诊断最有帮助?", "options": [["A", "腹部"], ["B", "超"], ["B", "胆固醇测定"], ["C", "蛋白电泳"], ["D", "十二指肠引流液"], ["E", "肝放射性核素扫描"]], "type": "single"}, {"id": 19, "question": "下列哪项检查可能出现阳性结果?", "options": [["A", "骨髓红系增生活跃"], ["B", "游离血红蛋白增高"], ["C", "尿含铁血黄素(+)"], ["D", "网织红细胞增高"], ["E", "胆固醇增高"]], "type": "single"}, {"id": 20, "question": "如做", "options": [["B", "超检查最有诊断价值的表现是什么?"], ["A", "肝内光点增粗"], ["B", "肝内胆管及胆总管扩张"], ["C", "胆囊结石"], ["D", "左叶肝内占位"], ["E", "门静脉内径增宽"], ["B", "型题（21～23）（答案指南：A、B、C、D、"], ["E", "是各选答案，21～23 题是考题，如果这 道题只与答案"], ["A", "或"], ["B", "有关，则将试题上的"], ["A", "或"], ["B", "写在答题上）"], ["A", "左侧卧位"], ["B", "坐位身体前倾"], ["C", "仰卧位"], ["D", "右侧卧位"], ["E", "吸气后紧闭声门，用力作呼气动作。 下列疾病，听诊时采用上述哪种呼吸或体位，杂音最清晰？"]], "type": "single"}, {"id": 23, "question": "特发性肥厚型主动脉瓣下狭窄", "options": [["C", "题型(24～25)（答案指南：A、B、C、"], ["D", "是备选答案，24～25 题是考题，如果这道题 与"], ["A", "或"], ["B", "有关，则将答案"], ["A", "或"], ["B", "写在答题纸上；如果这道题与答案"], ["A", "或"], ["B", "都有关，则将答 案"], ["C", "写在答题纸上，如果这道题与答案"], ["A", "和"], ["B", "都无关，则将答案"], ["D", "写在答题纸上）"], ["A", "吸气性呼吸困难"], ["B", "呼气性呼吸困难"], ["C", "两者均有"], ["D", "两者均无"]], "type": "single"}, {"id": 26, "question": "湿性啰音的特点有", "options": [["A", "呼气末较清楚"], ["B", "吸气未较清楚"], ["C", "多样性"], ["D", "性质不定且部位多变"], ["E", "部位较恒定"]], "type": "multiple"}, {"id": 27, "question": "胸膜摩擦音可见于", "options": [["A", "干性胸膜炎"], ["B", "胸腔积液"], ["C", "胸壁水肿"], ["D", "尿毒症"], ["E", "胸膜肿瘤"]], "type": "multiple"}, {"id": 28, "question": "舒张期三音律有", "options": [["A", "舒张早期奔马律"], ["B", "舒张晚期奔马律"], ["C", "二尖瓣开瓣音"], ["D", "大动脉口喷射音"], ["E", "喀喇音"]], "type": "multiple"}, {"id": 29, "question": "周围血管征包括", "options": [["A", "水冲脉"], ["B", "毛细血管搏动征"], ["C", "颈静脉怒张"], ["D", "枪击音"], ["E", "Duroziez 双重杂音"]], "type": "multiple"}, {"id": 30, "question": "中枢性瘫痪的特点有", "options": [["A", "肌张力增强"], ["B", "无肌萎缩"], ["C", "腱反射增强"], ["D", "有病理反射"], ["E", "肌张力减弱"]], "type": "multiple"}, {"id": 31, "question": "血沉增快可见于", "options": [["A", "风湿热"], ["B", "急性心肌梗死"], ["C", "心绞痛"], ["D", "胃癌"], ["E", "严重贫血"]], "type": "multiple"}, {"id": 32, "question": "诊断急性心肌梗死的血清酶有", "options": [["A", "丙氨酸氨基转移酶（ALT）"], ["B", "碱性磷酸酶（ALP）"], ["C", "肌酸激酶（CK）"], ["D", "乳酸脱氢酶（LDH）"], ["E", "天门冬氨酸氨基转移酶（AST）"]], "type": "multiple"}, {"id": 33, "question": "大量咯血常见于", "options": [["A", "支气管内膜结核"], ["B", "肺空洞"], ["C", "肺癌"], ["D", "支气管扩张"], ["E", "肺脓肿"]], "type": "multiple"}, {"id": 34, "question": "干性啰音的听诊特点", "options": [["A", "主要在呼气时听到"], ["B", "主要在吸气时听到"], ["C", "啰音的部位易变"], ["D", "啰音的部位较固定"], ["E", "咳嗽后消失"]], "type": "multiple"}, {"id": 35, "question": "肝颈静脉回流征阳性常见于", "options": [["A", "左心功能不全"], ["B", "右心功能不全"], ["C", "渗出性心包炎"], ["D", "原发性心肌病"], ["E", "心肌炎 二、是非题（每题 0.5 分，共 5 题）"]], "type": "multiple"}], "2": [{"id": 1, "question": "某男性患者畏寒发热 10 天，每天体温最高达 39.6～40.1℃，最低体温是 37.6℃左右， 试问该热型属于下列哪种？", "options": [["A", "波状热"], ["B", "稽留热"], ["C", "弛张热"], ["D", "不规则热"], ["E", "间歇热"]], "type": "single"}, {"id": 2, "question": "引起发热的病因中，下列哪项属非感染性发热?", "options": [["A", "立克次体"], ["B", "变态反应"], ["C", "肺炎支原体"], ["D", "螺旋体"], ["E", "病毒"]], "type": "single"}, {"id": 3, "question": "发热时寒战常出现于", "options": [["A", "体温上升期"], ["B", "高热持续期"], ["C", "体温下降期"], ["D", "间歇热的无热期"], ["E", "应用退热药后"]], "type": "single"}, {"id": 4, "question": "下列哪项可引起局部水肿?", "options": [["A", "右心衰竭"], ["B", "肾病综合征"], ["C", "丝虫病"], ["D", "营养不良"], ["E", "肝硬变"]], "type": "single"}, {"id": 5, "question": "下列哪项可出现中毒性呼吸困难?", "options": [["A", "重度贫血"], ["B", "尿毒症"], ["C", "癔病"], ["D", "脑膜炎"], ["E", "脑出血"]], "type": "single"}, {"id": 6, "question": "每天咯血量为多少时属于小量咯血?", "options": [["A", "＜100mL"], ["B", "100～200mL"], ["C", "＜200mL"], ["D", "＜500mL"], ["E", "100～500mL"]], "type": "single"}, {"id": 7, "question": "下列哪项不是循环系统疾病引起的咯血?", "options": [["A", "二尖瓣狭窄"], ["B", "肺梗死"], ["C", "房间隔缺损引起肺动脉高压"], ["D", "结节性动脉周围炎"], ["E", "支气管粘膜下层支气管静脉曲张破裂"]], "type": "single"}, {"id": 8, "question": "心悸伴消瘦及出汗可见于", "options": [["A", "心肌炎"], ["B", "心包炎"], ["C", "甲状腺功能亢进"], ["D", "感染性心内膜炎"], ["E", "心脏神经官能症"]], "type": "single"}, {"id": 9, "question": "呕吐大量隔宿食物可见于", "options": [["A", "急性糜烂性胃炎"], ["B", "慢性胃炎"], ["C", "胃十二指肠溃疡"], ["D", "急性肝炎"], ["E", "幽门梗阻"]], "type": "single"}, {"id": 10, "question": "呕血伴黄疸常见于", "options": [["A", "胃粘膜脱垂症"], ["B", "胆道疾病"], ["C", "慢性胃炎"], ["D", "消化性溃疡"], ["E", "十二指肠炎"]], "type": "single"}, {"id": 11, "question": "腹泻伴皮疹或皮下出血可见", "options": [["A", "急性细菌性痢疾"], ["B", "伤寒或副伤寒"], ["C", "肠结核"], ["D", "霍乱"], ["E", "细菌性食物中毒"]], "type": "single"}, {"id": 12, "question": "意识障碍伴瞳孔散大可见于", "options": [["A", "颠茄类中毒"], ["B", "吗啡类中毒"], ["C", "巴比妥类中毒"], ["D", "有机磷农药中毒"], ["E", "毒蕈中毒"]], "type": "single"}, {"id": 13, "question": "男性，45 岁，出现无痛性血尿 1 个月。下列哪种疾病可能性较大?", "options": [["A", "膀胱结核"], ["B", "膀胱结石"], ["C", "输尿管结石"], ["D", "前列腺增生"], ["E", "膀胱癌"]], "type": "single"}, {"id": 14, "question": "男性患者，患慢性迁延性肝炎数年，近来出现腹水，腹部隆起，欲查清肝、脾肿大情 况，应选择何种检查方法更恰当?", "options": [["A", "深部滑行触诊法"], ["B", "深压触诊法"], ["C", "双手触诊法"], ["D", "浅部触诊法"], ["E", "冲击触诊法"]], "type": "single"}, {"id": 15, "question": "当体重减轻至低于正常的多少时称为消瘦?", "options": [["A", "低于正常的 5%"], ["B", "低于正常的 10%"], ["C", "低于正常的 20%"], ["D", "低于正常的 30%"], ["E", "低于正常的 15%"]], "type": "single"}, {"id": 16, "question": "下列哪项不属于皮肤或粘膜下出血?", "options": [["A", "瘀点"], ["B", "紫癜"], ["C", "蜘蛛痣"], ["D", "瘀斑"], ["E", "血肿"]], "type": "single"}, {"id": 17, "question": "出现颈静脉搏动，见于下列哪种疾病?", "options": [["A", "主动脉瓣关闭不全"], ["B", "三尖瓣关闭不全"], ["C", "二尖瓣关闭不全"], ["D", "甲状腺功能亢进"], ["E", "严重贫血"]], "type": "single"}, {"id": 18, "question": "某老年男性，胸部体格检查示胸廓前后径明显增宽，肋间隙饱满，腹上角增大。此胸 廓形态为", "options": [["A", "漏斗胸"], ["B", "扁平胸"], ["C", "桶状胸"], ["D", "鸡胸"], ["E", "正常胸形"]], "type": "single"}, {"id": 19, "question": "呼气性呼吸困难最常见于", "options": [["A", "肺炎"], ["B", "胸膜炎"], ["C", "支气管哮喘合并感染"], ["D", "气管阻塞"], ["E", "肋骨骨折"]], "type": "single"}, {"id": 20, "question": "胸部触诊时语音震颤增强最常见于", "options": [["A", "大叶性肺炎"], ["B", "胸壁皮下气肿"], ["C", "上腔静脉阻塞综合征"], ["D", "支气管肺炎"], ["E", "慢性支气管炎"]], "type": "single"}, {"id": 21, "question": "胸膜摩擦感与心包摩擦感的鉴别要点", "options": [["A", "有无心脏病史"], ["B", "患者体质状况"], ["C", "屏气时摩擦感是否消失"], ["D", "咳嗽后摩擦感是否消失"], ["E", "变动体位摩擦感是否消失"]], "type": "single"}, {"id": 22, "question": "中水泡音多出现在下列哪个时相和时期?", "options": [["A", "呼气中期"], ["B", "吸气中期"], ["C", "呼气晚期"], ["D", "吸气晚期"], ["E", "吸气早期"]], "type": "single"}, {"id": 23, "question": "男性，活动时突感右胸部撕裂样痛，半小时后入院。体格检查：瘦长体型，大汗淋漓 惊恐状，气促，气管左偏，右颈部皮下气肿，叩诊右胸呈鼓音，右侧呼吸音消失。该 患者最可能诊断为", "options": [["A", "胸腔积液"], ["B", "大叶性肺炎"], ["C", "干性胸膜炎"], ["D", "右侧张力性气胸"], ["E", "肺气肿"]], "type": "single"}, {"id": 24, "question": "下列哪种情况肺泡呼吸音增强?", "options": [["A", "发热"], ["B", "胸痛"], ["C", "重症肌无力"], ["D", "慢性支气管炎"], ["E", "胸腔积液"]], "type": "single"}, {"id": 25, "question": "正常心尖搏动位置位于", "options": [["A", "第 4 肋间，左锁骨中线内 0.5～1cm 处，搏动范围以直径计算为 2.0～2.5cm"], ["B", "第 5 肋间，左锁骨中线内 1.5～2cm 处，搏动范围以直径计算为 2.0～2.5cm"], ["C", "第 6 肋间，左锁骨中线内 l～2cm 处，搏动范围以直径计算为 2.0～2.5cm"], ["D", "第 5 肋间，左锁骨中线内 0.5～1cm 处，搏动范围以直径计算为 2.0～2.5cm"], ["E", "第 5 肋间，左锁骨中线外 1～2cm 处，搏动范围以直径计算为 2.0～2.5cm"]], "type": "single"}, {"id": 26, "question": "心脏触诊的内容除震颤、心包摩擦感外，还包括", "options": [["A", "心前区隆起"], ["B", "心尖搏动及心前区搏动"], ["C", "脉搏"], ["D", "心率"], ["E", "毛细血管搏动征"]], "type": "single"}, {"id": 27, "question": "一患者胸骨右缘第 2 肋间触及收缩期震颤，提示", "options": [["A", "动脉导管未闭"], ["B", "主动脉瓣关闭不全"], ["C", "室间隔缺损"], ["D", "肺动脉瓣狭窄"], ["E", "主动脉瓣狭窄"]], "type": "single"}, {"id": 28, "question": "右心室显著增大，心浊音界可出现哪种改变?", "options": [["A", "相对浊音界向左右扩大，向左增大明显"], ["B", "相对浊音界向右扩大"], ["C", "绝对浊音界扩大"], ["D", "相对浊音界向左右扩大，且左界向左下扩大"], ["E", "胸骨右缘第 3 肋间相对浊音界向外扩大"]], "type": "single"}, {"id": 29, "question": "大量心包积液患者，坐位时心浊音界呈何种改变?", "options": [["A", "梨形"], ["B", "靴形"], ["C", "烧瓶形"], ["D", "普大型"], ["E", "心底部浊音区增宽"]], "type": "single"}, {"id": 30, "question": "关于心房颤动听诊的叙述，下列哪项是正确的?", "options": [["A", "可听到心房颤动音"], ["B", "第一心音强弱均等"], ["C", "心率少于脉率"], ["D", "心律常不规则"], ["E", "心率一定正常"]], "type": "single"}, {"id": 31, "question": "听到开瓣音常提示", "options": [["A", "二尖瓣狭窄伴二尖瓣关闭不全"], ["B", "二尖瓣严重狭窄，瓣膜钙化"], ["C", "二尖瓣狭窄分离术的禁忌证"], ["D", "二尖瓣狭窄伴左心衰竭"], ["E", "二尖瓣轻、中度狭窄，瓣膜弹性和活动性较好"]], "type": "single"}, {"id": 32, "question": "心脏听诊，听到“大炮音”应考虑哪种可能?", "options": [["A", "二尖瓣狭窄"], ["B", "P-R 间期缩短"], ["C", "运动或发热"], ["D", "完全性房室传导阻滞"], ["E", "甲状腺功能亢进"]], "type": "single"}, {"id": 33, "question": "女性，15 岁，心尖区听到舒张期隆隆样杂音。首先应考虑", "options": [["A", "功能性杂音"], ["B", "二尖瓣关闭不全"], ["C", "室间隔缺损"], ["D", "乳头肌断裂"], ["E", "二尖瓣狭窄"]], "type": "single"}, {"id": 34, "question": "肺动脉瓣区听到收缩期喷射性杂音，粗糙 4/6 级，伴震颤，P2 减弱并分裂，应考虑何 种情况?", "options": [["A", "功能性杂音，见于健康儿童、青年"], ["B", "先天性肺动脉瓣狭窄"], ["C", "肺动脉瓣关闭不全"], ["D", "室间隔缺损"], ["E", "动脉导管未闭"]], "type": "single"}, {"id": 35, "question": "检查一腹壁静脉曲张患者，脐以上血流方向由下至上，脐以下血流由上至下。该患者 符合下列哪项?", "options": [["A", "上腔静脉阻塞"], ["B", "下腔静脉阻塞"], ["C", "门静脉高压或门静脉阻塞"], ["D", "髂内静脉阻塞"], ["E", "髂外静脉阻塞"]], "type": "single"}, {"id": 36, "question": "左侧腹部触到一实体样包块，有弹性，可随呼吸而上、下移动，且患者诉有恶心感， 此为何脏器?", "options": [["A", "肝脏"], ["B", "肾脏"], ["C", "脾脏"], ["D", "结肠"], ["E", "肠系膜淋巴结"]], "type": "single"}, {"id": 37, "question": "某患者上腹偏左可触及一 6.0cm×2.5cm×3.0cm 大小卵圆形、表面光滑、有囊性感、 无明显压痛之包块，下列哪项可能性较大?", "options": [["A", "肝左叶肿大"], ["B", "横结肠"], ["C", "胰腺癌"], ["D", "胃癌"], ["E", "胰腺假性囊肿"]], "type": "single"}, {"id": 38, "question": "男，42 岁，畏寒、发热 6 天，肝区疼痛 2 天。腹部体格检查：肝右肋下 2cm，质软， 触痛，边缘整齐，肝右侧肋间隙局限性压痛，并有叩击痛。该患者最可能的诊断是", "options": [["A", "肝癌"], ["B", "肝炎"], ["C", "肝脓肿"], ["D", "多囊肝"], ["E", "肝包虫病"]], "type": "single"}, {"id": 39, "question": "患者腹膨隆呈蛙腹状时，检查肝脏应采用的手法", "options": [["A", "钩指触诊法"], ["B", "深部滑行触诊法"], ["C", "双手触诊法"], ["D", "深压触诊法"], ["E", "冲击触诊法"]], "type": "single"}, {"id": 40, "question": "下列哪项不属于共济运动的检查项目", "options": [["A", "跟－膝－胫试验"], ["B", "竖毛反射"], ["C", "轮替动作"], ["D", "Romberg 征"], ["E", "指鼻试验"]], "type": "single"}, {"id": 41, "question": "如下图所示，肺心病的心电图诊断的主要依据", "options": [["A", "窦性心律不齐"], ["B", "QRS 波群低电压"], ["C", "左心室肥大"], ["D", "肺性 P 波"], ["E", "左心房肥大"]], "type": "single"}, {"id": 42, "question": "男，55 岁，冠心病患者，突发心绞痛 5 分钟，休息后缓解，心电图改变如下，应诊断 为", "options": [["A", "急性心肌梗死"], ["B", "急性心包炎"], ["C", "急性心肌缺血"], ["D", "变异型心绞痛"], ["E", "心内膜下心肌梗死"]], "type": "single"}, {"id": 43, "question": "女，30 岁，发作性心悸，心电图检查如下图所示，诊断应考虑为", "options": [["A", "阵发性室性心动过速"], ["B", "窦性心动过速"], ["C", "阵发性快速型心房颤动"], ["D", "阵发性心房扑动"], ["E", "阵发性室上性心动过速"]], "type": "single"}, {"id": 44, "question": "关于网织红细胞(Ret)的叙述，下列哪项是正确的?", "options": [["A", "是幼稚的红细胞"], ["B", "是晚幼红细胞脱核后的年轻红细胞"], ["C", "是尚未完全成熟的红细胞"], ["D", "是介于中幼红细胞与晚幼红细胞之间的红细胞"], ["E", "是晚幼红细胞到成熟红细胞之间未完全成熟的红细胞"]], "type": "single"}, {"id": 45, "question": "大细胞性贫血常见于下列何种疾病?", "options": [["A", "恶性贫血"], ["B", "缺铁性贫血"], ["C", "地中海贫血"], ["D", "再生障碍性贫血"], ["E", "骨髓瘤性贫血"]], "type": "single"}, {"id": 46, "question": "内生肌酐清除率测定是反映", "options": [["A", "近端肾小管排泌功能"], ["B", "远端肾小管排泌功能"], ["C", "肾小球滤过功能测定"], ["D", "肾脏浓缩稀释功能"], ["E", "肾血流量"]], "type": "single"}, {"id": 47, "question": "脑脊液中氯化物显著减少的疾患是", "options": [["A", "化脓性脑膜炎"], ["B", "结核性脑膜炎"], ["C", "病毒性脑膜炎"], ["D", "蛛网膜下腔出血"], ["E", "脑肿瘤"]], "type": "single"}, {"id": 48, "question": "对乙型肝炎病毒感染具有保护作用的是", "options": [["A", "Dane 颗粒抗体"], ["B", "核心抗体"], ["C", "表面抗体"], ["D", "DN"], ["A", "多聚酶"], ["E", "e 抗原"]], "type": "single"}, {"id": 49, "question": "血氨增高主要见于", "options": [["A", "慢性肝炎"], ["B", "肝硬变早期"], ["C", "肝性脑病"], ["D", "慢性肾炎"], ["E", "溃疡性结肠炎"]], "type": "single"}, {"id": 50, "question": "癌胚抗原(CE", "options": [["A", "测定对下列哪种情况意义最大?"], ["A", "原发性肝癌"], ["B", "肺癌"], ["C", "鼻咽癌"], ["D", "淋巴瘤"], ["E", "结肠癌肝转移 二、填空题（每空 0.5 分，共 10 分）"]], "type": "single"}], "3": [{"id": 1, "question": "下列哪种是外源性致热原?", "options": [["A", "中性粒细胞"], ["B", "单核细胞"], ["C", "抗原抗体复合物"], ["D", "嗜酸性粒细胞"], ["E", "白细胞介素 I"]], "type": "single"}, {"id": 2, "question": "稽留热常见于", "options": [["A", "风湿热"], ["B", "败血症"], ["C", "疟疾"], ["D", "结核病"], ["E", "大叶性肺炎"]], "type": "single"}, {"id": 3, "question": "先昏迷后发热常见于下列哪种疾病?", "options": [["A", "败血症"], ["B", "流行性出血热"], ["C", "脑出血"], ["D", "流行性乙型脑炎"], ["E", "流行性脑脊髓膜炎"]], "type": "single"}, {"id": 4, "question": "水肿伴蜘蛛痣、脾肿大见于", "options": [["A", "心源性水肿"], ["B", "肝源性水肿"], ["C", "肾源性水肿"], ["D", "营养不良性水肿"], ["E", "以上都不是"]], "type": "single"}, {"id": 5, "question": "水肿伴肝肿大、肝颈静脉回流征阳性最可能的诊断是", "options": [["A", "肝癌"], ["B", "右心衰竭"], ["C", "左心衰竭"], ["D", "肝硬化"], ["E", "重度营养不良"]], "type": "single"}, {"id": 6, "question": "患者于睡眠中突然憋醒，有窒息感，被迫坐起，伴有咳嗽，约 10 分钟症状缓解，最可 能的诊断是", "options": [["A", "支气管哮喘发作"], ["B", "糖尿病酮症酸中毒"], ["C", "急性左心衰"], ["D", "肺气肿"], ["E", "自发性气胸"]], "type": "single"}, {"id": 7, "question": "长期慢性咳嗽、咯血、咯大量脓痰见于", "options": [["A", "慢性支气管炎"], ["B", "支气管扩张"], ["C", "肺炎"], ["D", "肺癌"], ["E", "以上都不是"]], "type": "single"}, {"id": 8, "question": "通常当毛细血管血液的还原血红蛋白量增加到哪种情况时，皮肤粘膜即可现发绀", "options": [["A", "20～30g/L"], ["B", "＞40g/L"], ["C", "＞50g/L"], ["D", "＞80g/L"], ["E", "＞100g/L"]], "type": "single"}, {"id": 9, "question": "呕吐伴寒战、发热、右上腹部绞痛应考虑", "options": [["A", "急性胰腺炎"], ["B", "急性胆囊炎"], ["C", "急性胃肠炎"], ["D", "急性阑尾炎"], ["E", "以上都不是"]], "type": "single"}, {"id": 10, "question": "呕吐物呈咖啡渣样棕褐色是由于", "options": [["A", "硫化亚铁形成"], ["B", "酸化正铁血红蛋白形成"], ["C", "胃内容物较多"], ["D", "出血量较少"], ["E", "以上都不是"]], "type": "single"}, {"id": 11, "question": "粪便中带有大量粘液而无病理成份见于", "options": [["A", "细菌感染"], ["B", "阿米巴痢疾"], ["C", "肠结核"], ["D", "肠易激综合征"], ["E", "以上都不是"]], "type": "single"}, {"id": 12, "question": "患者意识障碍，且有错觉、思维紊乱等精神症状，属于", "options": [["A", "嗜睡"], ["B", "意识模糊"], ["C", "昏迷"], ["D", "浅昏迷"], ["E", "深昏迷"]], "type": "single"}, {"id": 13, "question": "离心沉淀后的尿液，镜检下每高倍视野有红细胞超过几个为镜下血尿", "options": [["A", "3 个"], ["B", "5 个"], ["C", "8 个"], ["D", "10 个"], ["E", "15 个"]], "type": "single"}, {"id": 14, "question": "深部触诊法根据检查目的和手法的不同分为四种，但不包括", "options": [["A", "单手触诊法"], ["B", "双手触诊法"], ["C", "深部滑行触诊法"], ["D", "深压触诊法"], ["E", "冲击触诊法"]], "type": "single"}, {"id": 15, "question": "身体的外露部分，以及乳晕、腋窝、关节、掌纹等皮肤色素加深，口腔粘膜色素沉着， 常见于下列哪种疾病？", "options": [["A", "慢性肾上腺皮质功能减退"], ["B", "肝硬变"], ["C", "肝癌"], ["D", "肢端肥大症"], ["E", "疟疾"]], "type": "single"}, {"id": 16, "question": "甲状腺肿大超过胸锁乳突肌外缘者，称为", "options": [["A", "Ⅰ度肿大"], ["B", "Ⅱ度肿大"], ["C", "Ⅲ度肿大"], ["D", "Ⅳ度肿大"], ["E", "V 度肿大"]], "type": "single"}, {"id": 17, "question": "对于呼吸频率的描述，以下哪项是错误的", "options": [["A", "正常成人平静呼吸时为 16～20 次/分"], ["B", "呼吸与脉博的比例为 1：4"], ["C", "新生儿 30～50 次/分，随年龄增大而减少"], ["D", "呼吸频率低于 12 次/分，称为呼吸过缓"], ["E", "呼吸频率超过 20 次／分，称为呼吸过速"]], "type": "single"}, {"id": 18, "question": "肺下界移动范围的叩诊方法一般是从下列哪条解剖线上进行?", "options": [["A", "锁骨中线"], ["B", "腋中线"], ["C", "肩胛线"], ["D", "后正中线"], ["E", "腋后线"]], "type": "single"}, {"id": 19, "question": "肺泡呼吸音的呼气期延长主要见于", "options": [["A", "贫血"], ["B", "代谢性酸中毒"], ["C", "肋软骨骨化"], ["D", "慢性阻塞性肺气肿"], ["E", "胸膜炎"]], "type": "single"}, {"id": 20, "question": "胸膜摩擦音的听诊特点是", "options": [["A", "常在肺移动度小的部位听到"], ["B", "只有在呼气时才可听到"], ["C", "只有在吸气时才可听到"], ["D", "不受呼吸深浅的影响"], ["E", "屏住呼吸时摩擦音消失"]], "type": "single"}, {"id": 21, "question": "女，57 岁，长年咳嗽咳痰，咳重喘轻。体格检查：胸廓呈桶状，胸廓扩张度减弱，语 音共振减弱，双肺叩诊过清音，肺下界下移且移动度变小，双肺可闻及湿啰音及哮鸣 音。该患者诊断首先考虑为", "options": [["A", "支气管哮喘"], ["B", "慢性支气管炎并阻塞性肺气肿"], ["C", "支气管扩张"], ["D", "支气管肺炎"], ["E", "肺不张"]], "type": "single"}, {"id": 22, "question": "胸腔积液量少于多少则无明显症状?", "options": [["A", "500mL"], ["B", "400mL"], ["C", "300mL"], ["D", "200mI"], ["E", "1000mL"]], "type": "single"}, {"id": 23, "question": "负性心尖搏动可见于", "options": [["A", "肺气肿"], ["B", "大量胸腔积液"], ["C", "重度右心室肥大"], ["D", "大量心包积液"], ["E", "重度左心室肥大"]], "type": "single"}, {"id": 24, "question": "二尖瓣狭窄患者可在哪个部位触及震颤?", "options": [["A", "胸骨右缘第 4 肋问"], ["B", "胸骨左缘第 4 肋间"], ["C", "胸骨右缘第 3～4 助问"], ["D", "心尖区"], ["E", "剑突下"]], "type": "single"}, {"id": 25, "question": "心前区触到心包摩擦感提示", "options": [["A", "心脏增大"], ["B", "急性心包炎"], ["C", "瓣膜狭窄"], ["D", "瓣膜关闭不全"], ["E", "大量心包积液"]], "type": "single"}, {"id": 26, "question": "三尖瓣听诊区位于", "options": [["A", "心尖部"], ["B", "胸骨右缘第 4 肋间"], ["C", "胸骨左缘第 3 肋间"], ["D", "胸骨右缘第 5 肋间"], ["E", "胸骨下端左缘"]], "type": "single"}, {"id": 27, "question": "收缩中晚期喀喇音可见于哪种情况?", "options": [["A", "肺动脉瓣狭窄"], ["B", "主动脉瓣狭窄"], ["C", "房间隔缺损"], ["D", "动脉导管未闭"], ["E", "二尖瓣脱垂"]], "type": "single"}, {"id": 28, "question": "心律绝对不规则，第一心音强弱不等，脉率少于心率的心律失常称为", "options": [["A", "心律不齐"], ["B", "期前收缩"], ["C", "逸搏性心律失常"], ["D", "心房颤动"], ["E", "心室颤动"]], "type": "single"}, {"id": 29, "question": "第二心音固定分裂见于", "options": [["A", "二尖瓣狭窄"], ["B", "缩窄性心包炎"], ["C", "二尖瓣关闭不全"], ["D", "房间隔缺损"], ["E", "室间隔缺损"]], "type": "single"}, {"id": 30, "question": "奇脉是由于左室排血量减少所致，常见于", "options": [["A", "心律失常"], ["B", "主动脉瓣狭窄"], ["C", "主动脉瓣关闭不全"], ["D", "缩窄性心包炎"], ["E", "高血压性心脏病"]], "type": "single"}, {"id": 31, "question": "38 岁女性，活动后心悸、气喘 1 年余。查体轻度贫血，心率快，律整，胸骨右缘第 2 肋间闻及响亮而粗糙的收缩期杂音，首先应想到的疾病为", "options": [["A", "动脉导管未闭"], ["B", "主动脉瓣关闭不全"], ["C", "二尖瓣关闭不全"], ["D", "室间隔缺损"], ["E", "主动脉瓣狭窄"]], "type": "single"}, {"id": 32, "question": "下列哪项检查，对少量腹水的检测有帮助", "options": [["A", "波动感"], ["B", "移动性浊音"], ["C", "振水音"], ["D", "搔弹音"], ["E", "肠鸣音"]], "type": "single"}, {"id": 33, "question": "胆囊肿大、无压痛，伴显著黄疸，应考虑", "options": [["A", "胆囊炎"], ["B", "胆管炎"], ["C", "胰头癌"], ["D", "胆囊结石"], ["E", "胆总管结石"]], "type": "single"}, {"id": 34, "question": "门脉高压症候群应除外", "options": [["A", "腹水"], ["B", "脾肿大"], ["C", "肝肿大"], ["D", "痔核形成"], ["E", "食管和胃底静脉曲张"]], "type": "single"}, {"id": 35, "question": "男性，35 岁，5 年来常有空腹痛和夜间痛，以秋季为重。服用雷尼替丁可以减轻。体 格检查：上腹部偏右轻度压痛，最可能的诊断", "options": [["A", "胆囊炎"], ["B", "胃溃疡"], ["C", "十二指肠溃疡"], ["D", "胃炎"], ["E", "肾结石"]], "type": "single"}, {"id": 36, "question": "男，42 岁、畏寒，发热 6 天，肝区疼痛 2 天。腹部体格检查：肝右肋下 2cm，质软 ， 触痛，边缘整齐，肝右侧肋间隙局限性压痛，并有叩击痛。该患者最可能的诊断是", "options": [["A", "肝癌"], ["B", "肝炎"], ["C", "肝脓肿"], ["D", "多囊肝"], ["E", "肝包虫病"]], "type": "single"}, {"id": 37, "question": "浅反射不包括", "options": [["A", "角膜反射"], ["B", "腹壁反射"], ["C", "提睾反射"], ["D", "跟腱反射"], ["E", "跖反射"]], "type": "single"}, {"id": 38, "question": "心肌梗死最可靠的心电图改变是", "options": [["A", "ST 段压低"], ["B", "T 波倒置"], ["C", "频发室性期前收缩"], ["D", "坏死性 Q 波"], ["E", "ST 段抬高"]], "type": "single"}, {"id": 39, "question": "心肌炎患者，心电图检查如下图所示，可诊断为", "options": [["A", "双向性室性心动过速"], ["B", "间歇性室内传导阻滞"], ["C", "频发交界性期前收缩"], ["D", "窦性心律不齐"], ["E", "频发室性期前收缩呈二联律"]], "type": "single"}, {"id": 40, "question": "心电图诊断一度房室传导阻滞主要依据", "options": [["A", "P-R 间期相等"], ["B", "部分 P 波后无 QRS 波群"], ["C", "P-R 间期缩短"], ["D", "R-R 间期固定"], ["E", "P-R 间期≥0.21s"]], "type": "single"}, {"id": 41, "question": "再生障碍性贫血属于哪种类型的贫血", "options": [["A", "大细胞性贫血"], ["B", "正常细胞性贫血"], ["C", "小细胞低色素性贫血"], ["D", "单纯小细胞性贫血"], ["E", "低色素性贫血"]], "type": "single"}, {"id": 42, "question": "酸溶血试验阳性见于", "options": [["A", "巨幼细胞性贫血"], ["B", "自身免疫性溶血性贫血"], ["C", "遗传性球形细胞增多症"], ["D", "再生障碍性贫血"], ["E", "阵发性睡眠性血红蛋白尿"]], "type": "single"}, {"id": 43, "question": "尿液出现 Bence-Jones 蛋白，最常见", "options": [["A", "急性肾小球肾炎"], ["B", "多发性骨髓瘤"], ["C", "狼疮性肾炎"], ["D", "糖尿病肾病"], ["E", "肾盂肾炎"]], "type": "single"}, {"id": 44, "question": "白细胞管型常提示肾实质有细菌感染性病变，见于", "options": [["A", "肾盂肾炎"], ["B", "狼疮性肾炎"], ["C", "肾病综合征"], ["D", "急性肾小球肾炎"], ["E", "肾淀粉样变"]], "type": "single"}, {"id": 45, "question": "肾病患者 Ccr 为 40m1/分，应选择的治疗方案是", "options": [["A", "噻嗪类利尿剂"], ["B", "限制蛋白质摄入"], ["C", "人工透析"], ["D", "应用利尿剂"], ["E", "实施肾移植手术"]], "type": "single"}, {"id": 46, "question": "下列检查结果中，哪项不符合结核性脑膜炎的脑脊液特点", "options": [["A", "外观如毛玻璃样微浊"], ["B", "蛋白定性试验(++)"], ["C", "氯化物定量 128mmol/L"], ["D", "白细胞增加"], ["E", "细胞分类以淋巴细胞为主"]], "type": "single"}, {"id": 47, "question": "下列何者不符合漏出性浆膜腔积液特点", "options": [["A", "外观呈微混浊，浆液性"], ["B", "比重 1.015"], ["C", "蛋白定量 20g/L"], ["D", "细胞计数 86×l06/L，以淋巴细胞为主"], ["E", "可找到病原菌"]], "type": "single"}, {"id": 48, "question": "慢性肝病时，血清蛋白检查结果可出现", "options": [["A", "血清前清蛋白显著增高"], ["E", "甲胎蛋白持续性显著增高"], ["C", "清蛋白减少，球蛋白增加"], ["D", "癌胚抗原(CE"], ["A", "显著增高"], ["E", "异常凝血酶原(APT)增高"]], "type": "single"}, {"id": 49, "question": "诊断原发性肝癌首选的检查为", "options": [["A", "γ-谷氨酰转移酶"], ["B", "脯氨酰羟化酶"], ["C", "甲胎蛋白(AFP)"], ["D", "血氨测定"], ["E", "阻塞性脂蛋白 X（LP-X）"]], "type": "single"}, {"id": 50, "question": "HBV 五项指标中，仅抗-HBs 为阳性，提示为", "options": [["A", "HBV 感染已康复"], ["B", "过去和现在均末感染 HBV"], ["C", "急性 HBV 感染"], ["D", "曾感染 HBV，急性感染恢复期"], ["E", "急性肝炎，传染性强 二、填空题（每空 0.5 分，共 10 分）"]], "type": "single"}], "4": [{"id": 1, "question": "体温超过 40℃，最低时仍超过正常，一天内波动超过 2℃，此热型为", "options": [["A", "稽留热"], ["B", "不规则热"], ["C", "弛张热"], ["D", "间歇热"], ["E", "回归热"]], "type": "single"}, {"id": 2, "question": "男性，68 岁，突然左侧肢体瘫痪 6 小时，入院时体格检查：深睡状态，强刺激能睁眼， 问“头痛否”，迟钝回答“饭没有吃过”，旋即又入睡。这种意识状态为", "options": [["A", "意识模糊"], ["B", "嗜睡"], ["C", "昏睡"], ["D", "浅昏迷"], ["E", "深昏迷"]], "type": "single"}, {"id": 3, "question": "左心衰竭时最早出现的主要症状表现是", "options": [["A", "水肿"], ["B", "呼吸困难"], ["C", "肝充血性肿大"], ["D", "少尿"], ["E", "胸痛"]], "type": "single"}, {"id": 4, "question": "一侧交感神经麻痹，Honer 综合征时，同侧面部的体征，哪项是错误的", "options": [["A", "眼睑下垂"], ["B", "眼球内陷"], ["C", "瞳孔扩大"], ["D", "面部无汗"], ["E", "瞳孔缩小"]], "type": "single"}, {"id": 5, "question": "右上胸部触觉语颤减弱伴气管向患侧移位见于", "options": [["A", "大叶性肺炎实变期"], ["B", "阻塞性肺炎"], ["C", "气胸"], ["D", "胸腔积液"], ["E", "肺气肿"]], "type": "single"}, {"id": 6, "question": "胸骨左缘第 3、4 肋间触到收缩期震颤应考虑为", "options": [["A", "主动脉狭窄"], ["B", "肺动脉狭窄"], ["C", "室间隔缺损"], ["D", "动脉导管未闭"], ["E", "房间隔缺损"]], "type": "single"}, {"id": 7, "question": "主动脉狭窄的杂音听诊最响的是", "options": [["A", "胸骨左缘第 2 肋间"], ["B", "胸骨左缘第 3、4 肋间"], ["C", "胸骨右缘第 2 肋间"], ["D", "胸骨右缘第 3、4 肋间"], ["E", "胸骨右缘第 5 肋间"]], "type": "single"}, {"id": 8, "question": "一侧肢体瘫痪，肢体可水平移动位置，但不能上抬，其肌力为", "options": [["A", "1 级"], ["B", "2 级"], ["C", "3 级"], ["D", "4 级"], ["E", "5 级"]], "type": "single"}, {"id": 9, "question": "下列哪项是属于共济失调的体征之一", "options": [["A", "Babinski 征"], ["B", "Oppenheim 征"], ["C", "踝阵挛"], ["D", "闭目难立征"], ["E", "Hoffmann 征"]], "type": "single"}, {"id": 10, "question": "全腹膨隆呈蛙腹见于", "options": [["A", "腹内巨大包块"], ["B", "胃肠胀气"], ["C", "气腹"], ["D", "腹腔大量积液"], ["E", "肠梗阻"]], "type": "single"}, {"id": 11, "question": "腹腔内大量积液时，肝脏的触诊方法是", "options": [["A", "浅部触诊法"], ["B", "深部触诊法"], ["C", "深压触诊法"], ["D", "冲击触诊法"], ["E", "双手触诊法"]], "type": "single"}, {"id": 12, "question": "下列哪项体征，对胰头癌患者的诊断有帮助", "options": [["A", "黄疸"], ["B", "Murphy 征"], ["C", "Courvoisier 征"], ["D", "腹膜刺激征"], ["E", "腹水征"]], "type": "single"}, {"id": 13, "question": "下列哪些可出现心尖区第一心增强", "options": [["A", "心肌炎"], ["B", "期前收缩后的第一个正常心跳"], ["C", "心肌梗死"], ["D", "二尖瓣狭窄"], ["E", "心包积液"]], "type": "single"}, {"id": 14, "question": "下列病变时，心界叩诊变化错误的是", "options": [["A", "左室增大---向左下扩大"], ["B", "右室增大---同时向两侧扩大，以左为主"], ["C", "心包积液---立卧位心界叩诊不一致"], ["D", "心包积液---相对浊音界扩大，绝对浊音界缩小"], ["E", "左房增大---心腰部突出"]], "type": "single"}, {"id": 15, "question": "二尖瓣狭窄病人，为确认其杂音存在最好选择以下哪种情况", "options": [["A", "选用膜式胸件"], ["B", "安静状态"], ["C", "深吸气"], ["D", "前倾位"], ["E", "左侧卧位"]], "type": "single"}, {"id": 16, "question": "肺动脉瓣区听到收缩期喷射性杂音，粗糙 4/6 级，伴震颤，P2 减弱并分裂，应考虑何种 情况", "options": [["A", "功能性杂音，见于健康儿童、青年"], ["B", "先天性肺动脉瓣狭窄"], ["C", "肺动脉瓣关闭不全"], ["D", "室间隔缺损"], ["E", "动脉导管未闭"]], "type": "single"}, {"id": 17, "question": "患者气急、发热，体格检查：气管向左移位，右侧胸廓膨隆，触觉语颤减弱，叩诊呈 浊音，呼吸音减弱至消失，左肺（-）。考虑最可能的是", "options": [["A", "右侧大量胸腔积液"], ["B", "右侧气胸"], ["C", "右侧肺不张"], ["D", "右侧胸膜增厚"], ["E", "纵隔气肿"]], "type": "single"}, {"id": 18, "question": "“三凹征”常见于", "options": [["A", "支气管哮喘"], ["B", "糖尿病酮症酸中毒"], ["C", "大叶性肺炎"], ["D", "气管异物"], ["E", "胸腔积液"]], "type": "single"}, {"id": 19, "question": "腹部检查全腹膨隆，叩诊呈明显的鼓音，肠鸣音高亢呈金属音调，考虑为", "options": [["A", "急性肠炎"], ["B", "急性胃肠穿孔"], ["C", "急性弥漫性腹膜炎"], ["D", "急性机械性肠梗阻"], ["E", "大量腹水"]], "type": "single"}, {"id": 20, "question": "呕血伴黄疸常见于", "options": [["A", "胃粘膜脱垂症"], ["B", "胆道疾病"], ["C", "慢性胃炎"], ["D", "消化性溃疡"], ["E", "十二指 肠炎"]], "type": "single"}, {"id": 21, "question": "男，42 岁，畏寒、发热 6 天，肝区疼痛 2 天。腹部体格检查：肝右肋下 2cm，质软， 触痛，边缘整齐，肝右侧肋间隙局限性压痛，并有叩击痛。该患者最可能的诊断是", "options": [["A", "肝癌"], ["B", "肝炎"], ["C", "肝脓肿"], ["D", "多囊肝"], ["E", "肝包虫病"]], "type": "single"}, {"id": 22, "question": "血总胆红素，非结合胆红素增高，结合胆红素下降，粪便颜色加深，提示", "options": [["A", "溶血性黄疸"], ["B", "肝细胞性黄疸"], ["C", "胆汁瘀积性黄疸"], ["D", "Roter 综合征"], ["E", "核黄疸"]], "type": "single"}, {"id": 23, "question": "Charcot 三联征常常提示", "options": [["A", "肝脓肿"], ["B", "急性化脓性胆管炎"], ["C", "胆道蛔虫病"], ["D", "原发性肝癌"], ["E", "钩端螺旋体病"]], "type": "single"}, {"id": 24, "question": "左侧腹部触到一实体样包块，有弹性，可随呼吸而上、下移动，且患者诉有恶心感，此 为何脏器", "options": [["A", "肝脏"], ["B", "肾脏"], ["C", "脾脏"], ["D", "结肠"], ["E", "肠系膜淋巴结"]], "type": "single"}, {"id": 25, "question": "腕关节的功能位，是背伸", "options": [["A", "0o"], ["B", "5 o-15 o"], ["C", "20 o-25 o"], ["D", "30 o-40 o"], ["E", "40 o-50 o"]], "type": "single"}, {"id": 26, "question": "桡骨骨膜反射的检查是属于", "options": [["A", "深反射"], ["B", "浅反射"], ["C", "锥体束征"], ["D", "脑膜刺激征"], ["E", "以上都不是"]], "type": "single"}, {"id": 27, "question": "以下除外哪项均可用于腰骶椎的体检", "options": [["A", "摇摆试验"], ["B", "拾物试验"], ["C", "直腿抬高试验"], ["D", "旋颈试验"], ["E", "屈颈试验"]], "type": "single"}, {"id": 28, "question": "早期诊断原发性肝癌最敏感的检查是", "options": [["A", "AFP 测定"], ["B", "CE"], ["A", "测定"], ["C", "AST 测定"], ["D", "LDH 测定"], ["E", "AKP 测定"]], "type": "single"}, {"id": 29, "question": "浆膜腔积液下列哪项符合渗出液特点", "options": [["A", "比重 1.010"], ["B", "蛋白定量 32g/L"], ["C", "细胞中总数 86×106/L"], ["D", "积液 LDH 156IU/L"], ["E", "积液/血清 LDH 0.5"]], "type": "single"}, {"id": 30, "question": "男性，43 岁，乏力、纳差 1 个月，皮肤、巩膜黄染 1 周，伴皮肤瘙痒。体格检查： 巩膜、皮肤明显黄染，心肺（-），腹平软，无压痛，肝肋下 2cm，触痛(+)，脾未扪及， 胆囊可触及。TB136umol/L，CB90umol/L，ALTl00U/L，ALP120U/L，GGT240U/L。本例 属哪一类型黄疸", "options": [["A", "肝细胞性黄疸"], ["B", "溶血性黄疸"], ["C", "肝内胆汁淤积性黄疸"], ["D", "肝外胆汁淤积性黄疸"], ["E", "先天性黄疸"]], "type": "single"}, {"id": 31, "question": "下列检验结果哪项是错误的", "options": [["A", "正常男性周围血红细胞数 4.0～5.0×1012/L"], ["B", "正常人周围血白细胞数 4～10×109/L"], ["C", "正常人红细胞沉降率<20mm/1h 末"], ["D", "正常人成熟红细胞与有核细胞之比为 1:1，粒细胞为 5:1"], ["E", "正常成年人周围血网织红细胞 0.5%～1.5%"]], "type": "single"}, {"id": 32, "question": "某男性，34 岁，工人，反复上腹部疼痛 5 年，加重伴少尿 3 天。5 年来经常于餐后出 现上腹部疼痛，伴反酸、嗳气，3 天前因大量饮酒后，上腹部疼痛持续不缓，并出现头 晕、眼花，无力，全身湿冷等，并开始出现尿量少，尿色深黄，否认慢性肾功能不全 病史。请问该患者尿少相关的辅助检查最相符合", "options": [["A", "BUN 21.3 mmol/L"], ["B", "SCR 356μmol/L"], ["C", "SG 1.005"], ["D", "尿钠 45mmol/L"], ["E", "尿渗透压 380mOsm/KgH2O"]], "type": "single"}, {"id": 33, "question": "肾小管浓缩功能的检测指标有", "options": [["A", "Ccr"], ["B", "GFR"], ["C", "α1-MG"], ["D", "尿渗透压"], ["E", "尿酸化功能"]], "type": "single"}, {"id": 34, "question": "下列检验结果哪项是错误的", "options": [["A", "正常女性周围血红细胞数 4.0～5.0×1012/L"], ["B", "正常人周围血白细胞数 4～10×109/L"], ["C", "正常人红细胞沉降率>20mm/1h"], ["D", "正常人成熟红细胞与有核细胞之比为 1:1，粒细胞为 5:1"], ["E", "正常成年人周围血网织红细胞 0.5%～1.5%"]], "type": "single"}, {"id": 35, "question": "女性, 32 岁, 两月来头晕、乏力, 在某医院检查发现贫血, 试服硫酸亚铁 6 天, 因血红 蛋白未增加来院, 查血红蛋白 50g/L, 白细胞和血小板正常。红细胞大小不等, 中心淡 染,网织红细胞 6%, 骨髓中铁粒幼红细胞减少, 其最可能的诊断是", "options": [["A", "溶血性贫血"], ["B", "缺铁性贫血"], ["C", "感染性贫血"], ["D", "巨幼细胞性贫血"], ["E", "海洋性贫血"]], "type": "single"}, {"id": 36, "question": "青年女性，皮肤粘膜出血一周，平时有鼻出血且月经过多。查体红细胞 2.5×1012/L，血 红蛋白 80g/L，WBC10×109/L，PLT10×109/L，骨髓增生活跃，巨细胞增加，最可能的诊 断是", "options": [["A", "再生障碍性贫血"], ["B", "血小板减少性紫癜"], ["C", "过敏性紫癜"], ["D", "急性白血病"], ["E", "慢性白血病"]], "type": "single"}, {"id": 37, "question": "心电轴左偏时，QRS 波群表现为", "options": [["A", "Ⅰ导联 rs, Ⅲ导联 Rs"], ["B", "Ⅰ导联 Rs, Ⅲ导联 rS"], ["C", "Ⅰ导联 Rs, Ⅲ导联 Rs"], ["D", "Ⅰ导联 rs, Ⅲ导联 rS"], ["E", "Ⅰ导联 rs, Ⅲ导联 rs"]], "type": "single"}, {"id": 38, "question": "左心房肥大的心电图特征是", "options": [["A", "P 波高尖"], ["B", "P 波高而宽"], ["C", "P 波增宽、顶部切迹"], ["D", "P 波双向"], ["E", "P 波消失"]], "type": "single"}, {"id": 39, "question": "有关三度房室传导阻滞，哪项正确", "options": [["A", "P-R 间期逐渐延长"], ["B", "P-R 间期固定延长"], ["C", "P 波与 QRS 波无关"], ["D", "P-R 间期固定缩短"], ["E", "P 波与 QRS 波有关"]], "type": "single"}, {"id": 40, "question": "左心室肥大的心电图改变特征以哪项最为重要", "options": [["A", "心电轴左偏"], ["B", "QRS 波群时限延长"], ["C", "QRS 波群电压增高"], ["D", "ST-T 改变"], ["E", "T 波改变 X 型题(41～50)"]], "type": "single"}, {"id": 41, "question": "左心室扩大时可出现", "options": [["A", "心前区胸廓隆起"], ["B", "抬举性心尖搏动"], ["C", "心尖搏动范围增大"], ["D", "心浊音界向左下扩大"], ["E", "剑突下搏动"]], "type": "multiple"}, {"id": 42, "question": "器质性与功能性收缩期杂音的鉴别点是前者", "options": [["A", "持续时间长，常占全收缩期，遮盖第一心音"], ["B", "粗糙，吹风样，常呈高调"], ["C", "传导方向远而广"], ["D", "多无震颤"], ["E", "常在 3/6 级以上"]], "type": "multiple"}, {"id": 43, "question": "胸部检查触觉语颤减弱可见于", "options": [["A", "大量胸腔积液"], ["B", "肺气肿"], ["C", "大叶性肺炎"], ["D", "肺结核伴大空洞"], ["E", "气胸"]], "type": "multiple"}, {"id": 44, "question": "幽门梗阻的阳性体征是", "options": [["A", "液波震颤"], ["B", "移动性浊音"], ["C", "振水音"], ["D", "胃蠕动波"], ["E", "胃型"]], "type": "multiple"}, {"id": 45, "question": "锥体束受损时可出现的阳性征是", "options": [["A", "Babinski 征"], ["B", "Lasegue 征"], ["C", "Brudzinski 征"], ["D", "Kernig 征"], ["E", "踝阵挛"]], "type": "multiple"}, {"id": 46, "question": "胰头癌引起阻塞性黄疸，哪种检查最有诊断价值", "options": [["A", "ALP"], ["B", "AST"], ["C", "GGT"], ["D", "ALT"], ["E", "AFP"]], "type": "multiple"}, {"id": 47, "question": "病理性红细胞沉降率增快常见于", "options": [["A", "炎症性疾病"], ["B", "组织损伤及坏死"], ["C", "恶性肿瘤"], ["D", "贫血"], ["E", "高胆固醇血症"]], "type": "multiple"}, {"id": 48, "question": "尿量多而比重低，可见于", "options": [["A", "尿崩症"], ["B", "糖尿病"], ["C", "慢性肾炎晚期"], ["D", "急性肾盂肾炎"], ["E", "脱水"]], "type": "multiple"}, {"id": 49, "question": "化脓性脑膜炎的脑脊液特点哪项是错误的", "options": [["A", "蛋白含量显著增加"], ["B", "凝固性增高"], ["C", "葡萄糖含量增高"], ["D", "氯化物显著降低"], ["E", "细胞数增高"]], "type": "multiple"}, {"id": 50, "question": "窦性心律必须具备的心电图特征是", "options": [["A", "P 波规律出现"], ["B", "P 波在Ⅱ导联直立，aVR 倒置"], ["C", "P-R 间期≥0.12s"], ["D", "频率 60～100 次/min"], ["E", "P-P 间距>0.12s 二、名词解释(每题 3 分，共 15 分)"]], "type": "multiple"}], "5": [{"id": 1, "question": "老年患者胸骨后疼痛伴左肩放射痛，最可能的诊断是", "options": [["A", "心绞痛"], ["B", "气胸"], ["C", "胸膜炎"], ["D", "肺炎"], ["E", "肋软骨炎"]], "type": "single"}, {"id": 2, "question": "用力屏气后，感左侧胸痛伴胸闷，体格检查：左侧叩诊呈鼓音，触觉语颤减弱，呼吸音 减弱，最可能的诊断是", "options": [["A", "心绞痛"], ["B", "气胸"], ["C", "胸膜炎"], ["D", "肺炎"], ["E", "肋软骨炎"]], "type": "single"}, {"id": 3, "question": "根据腹痛部位判断病变部位时，哪种说法是错误的？", "options": [["A", "上腹痛时病变必然在胃或十二指肠"], ["B", "右上腹痛多为肝胆病变"], ["C", "右下腹痛多为回盲部病变"], ["D", "脐周痛多为小肠病变"], ["E", "左上腹痛应想到胰腺病变"]], "type": "single"}, {"id": 4, "question": "通过伴随症状推测腹痛原因时，哪种说法是错误的？", "options": [["A", "腹痛伴发热常提示炎症存在"], ["B", "腹痛伴黄疸必然为胆系感染"], ["C", "腹痛伴血尿可能为泌尿结石"], ["D", "腹痛伴休克及贫血可能为腹腔脏器破裂"], ["E", "腹痛伴腹泻可能为肠道感染"]], "type": "single"}, {"id": 5, "question": "有关消化道出血，哪种说明是错误的？", "options": [["A", "上消化道出血可有呕血及黑便"], ["B", "下消化道出血粪便多为红色或咖啡色"], ["C", "消化性溃疡是消化道出血最常见的原因"], ["D", "黄色粪便可排除消化道出血"], ["E", "上消化道出血量较大时，粪便可为暗红色"]], "type": "single"}, {"id": 6, "question": "根据腹泻的伴随症状推测腹泻的病因，哪种说法是不正确的？", "options": [["A", "腹泻伴急性发热和腹痛可能为肠道感染"], ["B", "腹泻伴里急后重可诊断为细菌性痢疾"], ["C", "腹泻伴明显消瘦可见于胃肠道肿瘤或吸收不良综合征"], ["D", "腹泻伴腹部包块见于肠道恶性肿瘤或肠结核"], ["E", "腹泻伴重度脱水常见于分泌性腹泻"]], "type": "single"}, {"id": 7, "question": "男性，18 岁，上腹持续性痛 4 小时，逐渐转向右下腹，呕吐 1 次。体格检查：体温 38℃， 腹软,右下腹 McBurney 点压痛，并有轻度反跳痛。最可能的诊断是", "options": [["A", "肠套叠"], ["B", "急性阑尾炎"], ["C", "肠结核"], ["D", "Crohn 病"], ["E", "结肠癌"]], "type": "single"}, {"id": 8, "question": "女性，38 岁。1 小时前被汽车撞出 6 米，现腹痛、心悸、出汗，月经正常。体格检查： BP 60/30mmHg，心率 120 次/分，律齐，腹部饱满，全腹压痛及反跳痛，腹部移动性浊音 （+）。最可能的诊断是", "options": [["A", "消化性溃疡穿孔"], ["B", "自发性腹膜炎"], ["C", "宫外孕破裂"], ["D", "肝破裂或脾破裂"], ["E", "黄体破裂"]], "type": "single"}, {"id": 9, "question": "男性，26 岁，节律性中上腹痛 3 个月，每于饥饿时或夜间痛重，有时向右放射，常反酸 嗳气。体格检查：脐右上方局限性压痛，无肌紧张及反跳痛。最可能的诊断是", "options": [["A", "胃溃疡"], ["B", "十二指肠溃疡"], ["C", "慢性胃炎"], ["D", "慢性胆囊炎"], ["E", "慢性胰腺炎"]], "type": "single"}, {"id": 10, "question": "男性，30 岁，十二指肠球部溃疡并发消化道出血，头晕，心悸，出汗，粪便柏油状。 体格检查：BP80/40mmHg，心率 120 次/分，律齐，两肺呼吸音清，腹平软，肠鸣音活 跃。其出血量约为", "options": [["A", "5ml"], ["B", "50ml"], ["C", "500ml"], ["D", "1000ml"], ["E", "＞1000ml"]], "type": "single"}, {"id": 11, "question": "男性，27 岁，腹泻半天，呕吐 3 次。腹泻为淘米水样，半天已 10 余次，无腹痛，感口 渴，乏力，粪检：WB", "options": [["C", "2～5 个/HP，余（-）。该腹泻的主要发生机制是"], ["A", "渗出性腹泻"], ["B", "渗透性腹泻"], ["C", "消化功能障碍性腹泻"], ["D", "吸收不良性腹泻"], ["E", "肠动力增强性腹泻"]], "type": "single"}, {"id": 12, "question": "弛张热可见于", "options": [["A", "结核病"], ["B", "布鲁菌病"], ["C", "疟疾"], ["D", "败血症"], ["E", "大叶性肺炎"]], "type": "single"}, {"id": 13, "question": "高热是指体温是", "options": [["A", "37.3～38℃"], ["B", "39.1～41℃"], ["C", "38.1～39℃"], ["D", "＞41℃"], ["E", "39～41℃上"]], "type": "single"}, {"id": 14, "question": "反复发作性呼吸困难伴有哮鸣音见于", "options": [["A", "糖尿病酮症酸中毒"], ["B", "急性左心衰"], ["C", "大叶性肺炎"], ["D", "急性渗出性胸膜炎"], ["E", "支气管哮喘"]], "type": "single"}, {"id": 15, "question": "对周围事物及各种刺激均无反应，对剧烈刺激或可出现防御反应，是指", "options": [["A", "嗜睡"], ["B", "昏睡"], ["C", "轻度昏迷"], ["D", "中度昏迷"], ["E", "深度昏迷"]], "type": "single"}, {"id": 16, "question": "下列哪项可引起局部水肿", "options": [["A", "右心衰竭"], ["B", "肾病综合征"], ["C", "丝虫病"], ["D", "营养不良"], ["E", "肝硬化"]], "type": "single"}, {"id": 17, "question": "下列哪项可出现呼气性呼吸困难？", "options": [["A", "急性喉炎"], ["B", "喉水肿"], ["C", "白喉"], ["D", "支气管哮喘"], ["E", "气管异物"]], "type": "single"}, {"id": 18, "question": "咳砖红色胶冻样血痰见于", "options": [["A", "支气管扩张"], ["B", "二尖瓣狭窄"], ["C", "克雷白杆菌肺炎"], ["D", "大叶性肺炎"], ["E", "肺梗死"]], "type": "single"}, {"id": 19, "question": "当血中高铁血红蛋白量达下列哪项时即可出现发绀？", "options": [["A", "50g/L"], ["B", "20g/L"], ["C", "30g/L"], ["D", "10g/L"], ["E", "40g/L"]], "type": "single"}, {"id": 20, "question": "发绀伴杵状指可见于", "options": [["A", "先天性心脏病"], ["B", "气胸"], ["C", "胸腔积液"], ["D", "肺炎"], ["E", "休克"]], "type": "single"}, {"id": 21, "question": "意识障碍伴瞳孔缩小可见于", "options": [["A", "颠茄类中毒"], ["B", "有机磷农药中毒"], ["C", "酒精中毒"], ["D", "氰化物中毒"], ["E", "癫痫"]], "type": "single"}, {"id": 22, "question": "中度昏迷与深昏迷最有价值的鉴别是", "options": [["A", "各种刺激无反应"], ["B", "不能唤醒"], ["C", "无自主运动"], ["D", "深浅反射均消失"], ["E", "大小便失禁"]], "type": "single"}, {"id": 23, "question": "下列哪项引起的呼吸困难不是吸气性呼吸困难？", "options": [["A", "白喉"], ["B", "喉癌"], ["C", "气管异物"], ["D", "气管肿瘤"], ["E", "慢性阻塞性肺气肿"]], "type": "single"}, {"id": 24, "question": "下列哪项不是血尿的病因", "options": [["A", "血小板减少性紫癜"], ["B", "药物和化学因素"], ["C", "败血症"], ["D", "糖尿病"], ["E", "肾小球肾炎"]], "type": "single"}, {"id": 25, "question": "下列哪项不属于现病史内容", "options": [["A", "病情的发展与演变"], ["B", "伴随时症状"], ["C", "诊疗经过"], ["D", "系统回顾"], ["E", "病程中的一般情况"]], "type": "single"}, {"id": 26, "question": "下列哪种情况导致吸气性呼吸困难？", "options": [["A", "支气管哮喘"], ["B", "慢性支气管炎"], ["C", "阻塞性肺气肿"], ["D", "喉头水肿"], ["E", "左心功能不全"]], "type": "single"}, {"id": 27, "question": "大水泡音主要发生在哪个部位", "options": [["A", "主支气管"], ["B", "细支气管"], ["C", "小支气管"], ["D", "终末支气管"], ["E", "肺泡"]], "type": "single"}, {"id": 28, "question": "正常情况下，下列哪个部位不能听到支气管呼吸音？", "options": [["A", "喉部"], ["B", "胸骨上窝"], ["C", "肩胛部"], ["D", "背部第 6、7 颈椎处"], ["E", "第 1、2 胸椎附近"]], "type": "single"}, {"id": 29, "question": "引起气管向患侧移位的病变是", "options": [["A", "大叶性肺炎"], ["B", "气胸"], ["C", "胸腔积液"], ["D", "肺不张"], ["E", "肺气肿"]], "type": "single"}, {"id": 30, "question": "瘀斑是指皮下出血的直径为", "options": [["A", "0.5mm"], ["B", "2～3mm"], ["C", "1～2mm"], ["D", "3～5mm"], ["E", "＞5mm"]], "type": "single"}, {"id": 31, "question": "急性胸膜炎的患者常取", "options": [["A", "自动体位"], ["B", "辗转体位"], ["C", "被动体位"], ["D", "强迫仰卧位"], ["E", "以上都不是"]], "type": "single"}, {"id": 32, "question": "甲状腺肿大超过胸锁乳突肌外缘者为", "options": [["A", "Ⅰ度肿大"], ["B", "Ⅱ度肿大"], ["C", "Ⅲ度肿大"], ["D", "轻度肿大"], ["E", "重度肿大"]], "type": "single"}, {"id": 33, "question": "患侧肺泡呼吸音减弱，下列哪项除外", "options": [["A", "胸腔积液"], ["B", "气胸"], ["C", "阻塞性肺不张"], ["D", "肺气肿"], ["E", "胸膜轻度增厚"]], "type": "single"}, {"id": 34, "question": "正常成人叩诊音不包括", "options": [["A", "鼓音"], ["B", "清音"], ["C", "过清音"], ["D", "浊音"], ["E", "实音"]], "type": "single"}, {"id": 35, "question": "口腔 Koplik 斑见于", "options": [["A", "口腔真菌感染"], ["B", "麻疹"], ["C", "风疹"], ["D", "牙龈炎"], ["E", "以上都不是"]], "type": "single"}, {"id": 36, "question": "Cheyne-Stokes 呼吸（潮式呼吸）见于", "options": [["A", "酸中毒"], ["B", "中枢神经系统病变"], ["C", "急性胸膜炎"], ["D", "神经衰弱"], ["E", "运动后"]], "type": "single"}, {"id": 37, "question": "满月面容见于", "options": [["A", "甲状腺功能亢进"], ["B", "肾上腺皮质功能亢进（Cushing 综合征）"], ["C", "风湿性心脏病"], ["D", "肾病"], ["E", "破伤风"]], "type": "single"}, {"id": 38, "question": "关于心脏震颤，下列哪项是错误的？", "options": [["A", "触到震颤可肯定有器质性心脏病"], ["B", "常见于某些先天性心脏病及心脏瓣膜狭窄时"], ["C", "其产生机制与心脏杂音相似"], ["D", "有震颤一定能听到杂音，反之亦然"], ["E", "在一定条件下，杂音越响，震颤越强"]], "type": "single"}, {"id": 39, "question": "抬举性心尖搏动提示", "options": [["A", "左心室肥大"], ["B", "右心室肥大"], ["C", "左心房增大"], ["D", "左心房增大伴肺动脉扩张"], ["E", "左、右心室扩大"]], "type": "single"}, {"id": 40, "question": "心相对浊音界呈靴形，常见于", "options": [["A", "心包积液"], ["B", "二尖瓣狭窄"], ["C", "扩张型心肌病"], ["D", "肺心病"], ["E", "主动脉瓣关闭不全 X 型题（41～50）"]], "type": "single"}, {"id": 41, "question": "胸痛合并咳嗽见于", "options": [["A", "肺炎"], ["B", "肺癌"], ["C", "肺梗死"], ["D", "气胸"], ["E", "肋软骨炎"]], "type": "multiple"}, {"id": 42, "question": "上消化道出血最常见病因是", "options": [["A", "消化性溃疡"], ["B", "出血性胆管炎"], ["C", "出血性全身疾病"], ["D", "急性胃粘膜病变"], ["E", "胃底食管静脉曲张破裂"]], "type": "multiple"}, {"id": 43, "question": "外源性致热原有下列哪些", "options": [["A", "细菌毒素"], ["B", "病毒"], ["C", "真菌"], ["D", "抗原抗体复合物"], ["E", "白细胞介素Ⅰ"]], "type": "multiple"}, {"id": 44, "question": "引起呼吸困难的呼吸系统疾病有下列哪些？", "options": [["A", "气道阻塞"], ["B", "大片肺不张"], ["C", "自发性气胸"], ["D", "大量胸腔积液"], ["E", "癔病"]], "type": "multiple"}, {"id": 45, "question": "左心衰竭发生呼吸困难的机制为", "options": [["A", "肺瘀血"], ["B", "肺泡张力增高"], ["C", "肺泡弹性减退"], ["D", "右心房与上腔静脉压升高"], ["E", "血液含量减少"]], "type": "multiple"}, {"id": 46, "question": "咳嗽伴声音嘶哑可见于", "options": [["A", "声带炎"], ["B", "喉炎"], ["C", "喉结核"], ["D", "喉癌"], ["E", "喉返神经麻痹"]], "type": "multiple"}, {"id": 47, "question": "下列哪些属个人史内容", "options": [["A", "出生地、居留地区及时间"], ["B", "疫水接触史"], ["C", "烟酒嗜好"], ["D", "初潮年龄"], ["E", "生育次数"]], "type": "multiple"}, {"id": 48, "question": "关于主诉的叙述，下列哪些是正确的？", "options": [["A", "咽痛、发热 2 天"], ["B", "畏寒、发热、右胸痛、咳嗽、食欲不振、头昏、乏力 3 天"], ["C", "活动后心悸、气促 2 年，下肢水肿 10 天"], ["D", "患糖尿病 1 年，多饮、多食、多尿、消瘦明显 2 个月"], ["E", "经检验白血病复发 2 周，要求入院化疗"]], "type": "multiple"}, {"id": 49, "question": "胸骨角标志着", "options": [["A", "支气管分叉"], ["B", "第四胸椎"], ["C", "心房上缘"], ["D", "上下纵隔的分界"], ["E", "第三肋间隙"]], "type": "multiple"}, {"id": 50, "question": "心脏听诊内容包括", "options": [["A", "杂音最响部位"], ["B", "杂音出现的时期"], ["C", "杂音的性质"], ["D", "杂音的响度及传导方向"], ["E", "体位、呼吸和运动对杂音的影响 二．名词解释（每小题 3 分，共 15 分）"]], "type": "multiple"}], "6": [{"id": 1, "question": "心尖部触及舒张期震颤提示", "options": [["A", "二尖瓣关闭不全"], ["B", "二尖瓣狭窄"], ["C", "主动脉瓣关闭不全"], ["D", "主动脉瓣狭窄"], ["E", "肺动脉瓣狭窄"]], "type": "single"}, {"id": 2, "question": "呕血的常见原因，下列哪项是错误的？", "options": [["A", "空肠疾病"], ["B", "胃、十二指肠疾病"], ["C", "胆管疾病"], ["D", "胰腺疾病"], ["E", "食管疾病"]], "type": "single"}, {"id": 3, "question": "二尖瓣开瓣音提示", "options": [["A", "二尖瓣严重钙化"], ["B", "二尖瓣狭窄，瓣膜弹性尚好"], ["C", "左心室肥大"], ["D", "二尖瓣关闭不全"], ["E", "心功能不全"]], "type": "single"}, {"id": 4, "question": "下列哪项脑脊液检查结果不符合结核性脑膜炎的改变", "options": [["A", "外观呈毛玻璃样"], ["B", "细胞计数 20×106/L，以淋巴细胞为主"], ["C", "氯化物为 135mmol/L"], ["D", "侧卧位脑脊液压力为 90mmH2O"], ["E", "蛋白质定性（++）"]], "type": "single"}, {"id": 5, "question": "正常脾脏浊音界长度为", "options": [["A", "2～3 ㎝"], ["B", "4～7 ㎝"], ["C", "8～10 ㎝"], ["D", "10～12 ㎝"], ["E", "以上都不对"]], "type": "single"}, {"id": 6, "question": "中度贫血的标准是", "options": [["A", "100g/L≤Hb＜120g/L"], ["B", "80g/L≤Hb＜90g/L"], ["C", "70g/L≤Hb＜90g/L"], ["D", "60g/L≤Hb＜90g/L"], ["E", "30g/L≤Hb＜60g/L"]], "type": "single"}, {"id": 7, "question": "下列哪项检查是反映肾脏近曲小管功能", "options": [["A", "肌酐清除率"], ["B", "血尿素氮"], ["C", "肾图"], ["D", "酚红排泄试验"], ["E", "浓缩稀释试验"]], "type": "single"}, {"id": 8, "question": "镜下血尿指", "options": [["A", "每高倍镜视野＞3 个 RBC/HP"], ["B", "每高倍镜视野＞5 个 RBC/HP"], ["C", "每高倍镜视野＜3 个 RBC/HP"], ["D", "每高倍镜视野＜5 个 RBC/HP"], ["E", "每高倍镜视野≥3 个 RBC/HP"]], "type": "single"}, {"id": 9, "question": "心尖部第一心音亢进提示", "options": [["A", "二尖瓣关闭不全"], ["B", "主动脉瓣关闭不全"], ["C", "二尖瓣狭窄"], ["D", "急性心肌梗死"], ["E", "以上都不是"]], "type": "single"}, {"id": 10, "question": "正常的肠鸣音为", "options": [["A", "1～2 次/分"], ["B", "4～5 次/分"], ["C", "7～8 次/分"], ["D", "10～12 次/分"], ["E", "呈金属样叮铛声"]], "type": "single"}, {"id": 11, "question": "上输尿管的压痛点在", "options": [["A", "第十肋前端"], ["B", "肋缘下腹直肌外缘处"], ["C", "腹直肌外缘平脐处"], ["D", "通过耻骨结节的垂线与骼前上棘连线原交点"], ["E", "以上都不是"]], "type": "single"}, {"id": 12, "question": "紫癜是指皮下出血的直径为", "options": [["A", "0.5mm"], ["B", "2～3mm"], ["C", "＞5mm"], ["D", "1～2mm"], ["E", "3～5mm"]], "type": "single"}, {"id": 13, "question": "患者半小时前被汽车撞倒，处于深睡状态，强烈刺激能睁眼，问患者“头痛否？”回 答“要喝开水”，旋即入睡。防御反应和神经反射存在，其意识状态判断为", "options": [["A", "意识模糊"], ["B", "嗜睡"], ["C", "昏睡"], ["D", "浅昏迷"], ["E", "以上都不是"]], "type": "single"}, {"id": 14, "question": "肺部比较叩诊不正确的是", "options": [["A", "叩诊顺序：由上至下，由前至后，左右对称比较叩诊"], ["B", "叩诊时应注意音响变化"], ["C", "叩前胸与侧胸时板指与肋间平行"], ["D", "叩肩胛区时板指与脊柱平行"], ["E", "叩肩胛下区板指可随意置"]], "type": "single"}, {"id": 15, "question": "患者腹壁静脉曲张，其血流方向均向上，应考虑", "options": [["A", "上腔静脉阻塞"], ["B", "肝硬化伴门脉高压"], ["C", "下腔静脉阻塞"], ["D", "淋巴管阻塞"], ["E", "肝静脉阻塞"]], "type": "single"}, {"id": 16, "question": "下列神经反射，哪项不是病理反射？", "options": [["A", "Babinski 征"], ["B", "Brudzinski 征"], ["C", "Hoffmann 征"], ["D", "Gordon 征"], ["E", "阵挛"]], "type": "single"}, {"id": 17, "question": "桡骨骨膜反射的检查是属于", "options": [["A", "深反射"], ["B", "浅反射"], ["C", "锥体束征"], ["D", "脑膜刺激征"], ["E", "以上都不是"]], "type": "single"}, {"id": 18, "question": "腹腔内有游离腹水，出现移动性浊音时，腹水量约为", "options": [["A", "100ml 以上"], ["B", "200ml 以上"], ["C", "500ml 以上"], ["D", "1000ml 以上"], ["E", "3000～4000ml 以上"]], "type": "single"}, {"id": 19, "question": "腹部反跳痛发生的病理机制是", "options": [["A", "肠腔胀气及炎症"], ["B", "内脏肿大及淤血"], ["C", "肝、胰肿瘤有淋巴结转移"], ["D", "总胆管结石并梗阻"], ["E", "腹腔内脏器炎症累及壁层腹膜"]], "type": "single"}, {"id": 20, "question": "既往史包括以下内容，除外", "options": [["A", "传染病史"], ["B", "外伤手术史"], ["C", "过敏史"], ["D", "预防接种史"], ["E", "不洁性交史"]], "type": "single"}, {"id": 21, "question": "窦性心动过缓是指", "options": [["A", "心率低于 50 次/分"], ["B", "心率低于 55 次/分"], ["C", "心率低于 45 次/分"], ["D", "心率低于 60 次/分"], ["E", "心率低于 65 次/分"]], "type": "single"}, {"id": 22, "question": "关于咯血与呕血的鉴别，下列哪项是错误的？", "options": [["A", "咯血见于呼吸道疾病"], ["B", "咯血属碱性，呕血属酸性"], ["C", "出血方式，咯血为咯出，呕血为呕出，可为喷射状"], ["D", "咯血血中混有痰泡沫，呕血混有食物残渣、胃液"], ["E", "咯血不能出现黑便"]], "type": "single"}, {"id": 23, "question": "急性胸膜炎患者，触诊胸膜摩擦感的特征是", "options": [["A", "检查时有握雪感"], ["B", "咳嗽后消失"], ["C", "有时只在呼吸末触及"], ["D", "常于胸壁上部触及"], ["E", "检查时有皮革相互摩擦的感觉"]], "type": "single"}, {"id": 24, "question": "下列哪项体征可出现在正常青少年", "options": [["A", "收缩早期喀喇音"], ["B", "心尖区舒张期杂音"], ["C", "S4"], ["D", "S3"], ["E", "S2 固定分裂"]], "type": "single"}, {"id": 25, "question": "腹部检查下列哪项是错误的？", "options": [["A", "振水音-幽门梗阻"], ["B", "肠鸣音消失-肠麻痹"], ["C", "肋下触及肝脏-肝肿大"], ["D", "正常人可触及腹主动脉搏动"], ["E", "脾脏正常时肋下不能触及"]], "type": "single"}, {"id": 26, "question": "呼吸频率减慢常见于", "options": [["A", "贫血"], ["B", "发热"], ["C", "酸中毒"], ["D", "胸膜增厚"], ["E", "颅内压高压"]], "type": "single"}, {"id": 27, "question": "扁桃体肿大超过咽腭弓，但未超过咽后壁中线者为", "options": [["A", "Ⅰ度肿大"], ["B", "Ⅱ度肿大"], ["C", "Ⅲ度肿大"], ["D", "重度肿大"], ["E", "轻度肿大"]], "type": "single"}, {"id": 28, "question": "蜘蛛痣的形成和下列哪项因素有关", "options": [["A", "血小板减少"], ["B", "毛细血管脆性增加"], ["C", "血中雌激素增加"], ["D", "血中肾上腺皮质激素增加"], ["E", "药物过敏"]], "type": "single"}, {"id": 29, "question": "语音共振减弱见于", "options": [["A", "肺气肿"], ["B", "肺结核并大空洞形成"], ["C", "肺梗死"], ["D", "肺脓肿"], ["E", "以上都不是"]], "type": "single"}, {"id": 30, "question": "哪项疾病是咯血最常见的原因", "options": [["A", "肺淤血"], ["B", "房间隔缺损"], ["C", "支气管腺瘤"], ["D", "肺结核"], ["E", "肺梗死"]], "type": "single"}, {"id": 31, "question": "成人外周白细胞计数正常值为", "options": [["A", "（4～6）×109/L"], ["B", "（4～8）×109/L"], ["C", "（4～10）×109/L"], ["D", "（6～8）×109/L"], ["E", "（8～10）×109/L"]], "type": "single"}, {"id": 32, "question": "正常情况下，下列哪个部位不能听到支气管呼吸音？", "options": [["A", "喉部"], ["B", "胸骨上窝"], ["C", "肩胛下部"], ["D", "背部第 6、7 颈椎旁"], ["E", "第 1、2 胸椎附近"]], "type": "single"}, {"id": 33, "question": "多尿是指", "options": [["A", "24 小时尿量＞2500ml"], ["B", "每昼夜尿量经常＞2500ml"], ["C", "24 小时尿量＞2000ml"], ["D", "每昼夜尿量经常＞2000ml"], ["E", "每昼夜尿量经常＞1500ml"]], "type": "single"}, {"id": 34, "question": "急性型再生障碍性贫血骨髓增生", "options": [["A", "极度减低"], ["B", "减低"], ["C", "活跃"], ["D", "明显活跃"], ["E", "极度活跃"]], "type": "single"}, {"id": 35, "question": "血氨增高见于", "options": [["A", "低蛋白血症"], ["B", "贫血"], ["C", "肾炎"], ["D", "肝性脑病"], ["E", "胰腺炎"]], "type": "single"}, {"id": 36, "question": "心室除极波是", "options": [["A", "R 波"], ["B", "P 波"], ["C", "Q 波"], ["D", "QRS 波"], ["E", "T 波"]], "type": "single"}, {"id": 37, "question": "心房颤动是", "options": [["A", "R-R 间期相等"], ["B", "大小不等、形态不同的“f”波"], ["C", "大小不等、形态不同的“F”波"], ["D", "可见窦性 P 波"], ["E", "QRS 波群宽大畸形"]], "type": "single"}, {"id": 38, "question": "早期诊断原发性肝癌最敏感的检查是", "options": [["A", "AFP 测定"], ["B", "CE"], ["A", "测定"], ["C", "AST 测定"], ["D", "LDH 测定"], ["E", "AKP 测定"]], "type": "single"}, {"id": 39, "question": "蜡样管型常见于", "options": [["A", "急性肾炎"], ["B", "慢性肾盂肾炎"], ["C", "急性肾功能衰竭多尿早期"], ["D", "慢性肾功能不全"], ["E", "Ig"], ["A", "肾病"]], "type": "single"}, {"id": 40, "question": "红细胞形态学属于小细胞低色素性贫血是哪种", "options": [["A", "再生障碍性贫血"], ["B", "急性失血性贫血"], ["C", "尿毒症性贫血"], ["D", "巨幼细胞性贫血"], ["E", "珠蛋白生成障碍性贫血 X 型题（41～50）"]], "type": "single"}, {"id": 41, "question": "水冲脉可见于", "options": [["A", "主动脉瓣关闭不全"], ["B", "严重贫血"], ["C", "甲状腺功能亢进症"], ["D", "三尖瓣关闭不全"], ["E", "心包积液"]], "type": "multiple"}, {"id": 42, "question": "正常人触觉语颤的生理差异为", "options": [["A", "前胸上部较下部弱"], ["B", "前胸上部较下部强"], ["C", "后胸下部较上部强"], ["D", "左上胸较右上胸强"], ["E", "后胸上部较下部强"]], "type": "multiple"}, {"id": 43, "question": "下列叙述何者错误？", "options": [["A", "一般叩得的肝下界约比触得的肝下界低 2～3 ㎝"], ["B", "一般肝上界比肺下界高一个肋间"], ["C", "肝浊音界缩小可见于急性肝坏死及胃肠胀气"], ["D", "肝浊音界消失是急性胃肠穿孔的重要征象"], ["E", "右锁骨中线上肝上、下界之间的距离 8～10 ㎝"]], "type": "multiple"}, {"id": 44, "question": "异常支气管呼吸音见于", "options": [["A", "肺组织实变"], ["B", "肺内大空腔"], ["C", "压迫性肺不张"], ["D", "阻塞性肺不张"], ["E", "肺内含气量增多"]], "type": "multiple"}, {"id": 45, "question": "以下哪些项目是属于主动脉瓣关闭不全的体征", "options": [["A", "心脏呈靴形增大"], ["B", "心尖区可闻舒张期隆隆样杂音"], ["C", "周围血管可闻 Duroziez 双重杂音"], ["D", "奇脉"], ["E", "第一心音增强"]], "type": "multiple"}, {"id": 46, "question": "奇脉可出现于", "options": [["A", "冠心病"], ["B", "胸腔积液"], ["C", "心包积液"], ["D", "主动脉瓣狭窄"], ["E", "以上都不是"]], "type": "single"}, {"id": 47, "question": "胸骨角（Louis 角）标志着", "options": [["A", "支气管分支"], ["B", "第 5 胸椎水平"], ["C", "右心室上缘"], ["D", "上、下纵膈交界"], ["E", "主动脉弓"]], "type": "multiple"}, {"id": 48, "question": "下述哪些检查提示溶血性黄疸", "options": [["A", "血清总胆红素增多"], ["B", "血清结合胆红素/总胆红素>35%"], ["C", "尿内胆红素检查呈阳性反应"], ["D", "尿胆原明显增加"], ["E", "粪胆原增加"]], "type": "multiple"}, {"id": 49, "question": "下列哪些物质不属脂蛋白类", "options": [["A", "胆固醇"], ["B", "甘油三酯"], ["C", "低密度脂蛋白"], ["D", "高密度脂蛋白"], ["E", "乳糜微粒"]], "type": "multiple"}, {"id": 50, "question": "甲状腺功能亢进症的敏感指标有", "options": [["A", "TT3"], ["B", "FT3"], ["C", "TT4"], ["D", "FT4"], ["E", "TSH 二．名词解释（每题 3 分，共 15 分）"]], "type": "multiple"}], "7": [{"id": 1, "question": "区别腹部肿块来自腹腔或腹壁最简易的检查方法是", "options": [["A", "超声波检查"], ["B", "胃肠钡餐检查"], ["C", "腹部 X 线平片"], ["D", "腹部体格检查"], ["E", "同位素扫描"]], "type": "single"}, {"id": 2, "question": "腹部检查下列哪项错误", "options": [["A", "振水音见于幽门梗阻"], ["B", "肋下触及肝脏则肝脏肿大"], ["C", "脾脏正常时不能触及"], ["D", "肠鸣音消失可见于肠麻痹"], ["E", "腹主动脉搏动正常人可触到"]], "type": "single"}, {"id": 3, "question": "鉴别颈动脉搏动与颈静脉搏动最关键的是", "options": [["A", "搏动的位置"], ["B", "搏动的范围"], ["C", "搏动部位是否有血管杂音"], ["D", "触诊指尖的搏动感，动脉搏动感较强"], ["E", "以上都不是"]], "type": "single"}, {"id": 4, "question": "某患者右中肺听诊发现呼吸音柔和，呈吹风样“fu-fu”声，吸气期较呼气期音响较强， 音调高，时相较长，应诊断为", "options": [["A", "支气管呼吸音"], ["B", "肺泡呼吸音"], ["C", "支气管肺泡呼吸音"], ["D", "减弱的支气管呼吸音"], ["E", "增强的支气管呼吸音"]], "type": "single"}, {"id": 5, "question": "痛风患者耳廓上触痛性小结节，其产生原因为", "options": [["A", "风湿性肉芽肿"], ["B", "耳廓软骨炎"], ["C", "碳酸盐沉积"], ["D", "尿酸盐沉积"], ["E", "皮肤感染"]], "type": "single"}, {"id": 6, "question": "既可有意识障碍又伴心动过缓，但下列哪项除外", "options": [["A", "颅内高压症"], ["B", "房室传导阻滞"], ["C", "胆汁淤积性黄疸"], ["D", "吗啡中毒"], ["E", "阿托品中毒"]], "type": "single"}, {"id": 7, "question": "下列哪项不是产生水肿的因素", "options": [["A", "钠与水潴留"], ["B", "毛细血管滤过压升高"], ["C", "毛细血管通透性增高。"], ["D", "血浆胶体渗透压升高"], ["E", "淋巴回流受阻"]], "type": "single"}, {"id": 8, "question": "女性患者，45 岁，农民，有高血压病史。因阵发性剑突下钻顶样疼痛伴呕吐 3 天来诊， 发作时大汗淋漓，辗转不安，呻吟，缓解期无明显不适。体格检查：BP180/100mmHg，心、 肺正常，腹软，剑突下有压痛。该患者最可能的诊断是", "options": [["A", "心绞痛"], ["B", "胆石症"], ["C", "泌尿系结石"], ["D", "胆道蛔虫症"], ["E", "消化性溃疡"]], "type": "single"}, {"id": 9, "question": "有规律呼吸几次后，突然停止一段时间，又开始呼吸，周而复始，称为", "options": [["A", "Cheyne-Stokes 呼吸"], ["B", "Biots 呼吸"], ["C", "Kussmaul 呼吸"], ["D", "抑制性呼吸"], ["E", "叹息样呼吸"]], "type": "single"}, {"id": 10, "question": "男性，52 岁，上腹痛 3 个月，伴纳差，体重减轻，反复查大便潜血阳性。X 线钡餐检 查示胃窦巨大溃疡，胃壁硬，蠕动弱。如此患者出现淋巴结肿大，下列哪组区域的浅 表淋巴结最先出现肿大", "options": [["A", "左颈深淋巴结上群"], ["B", "颈前三角"], ["C", "右颈深淋巴结下群"], ["D", "左锁骨上窝"], ["E", "右锁骨上窝"]], "type": "single"}, {"id": 11, "question": "胸痛伴有咳嗽、咯血和大量脓臭痰者最主要见于", "options": [["A", "肺炎"], ["B", "支气管炎"], ["C", "肺癌"], ["D", "肺栓塞"], ["E", "肺脓肿"]], "type": "single"}, {"id": 12, "question": "主诉写作要求下列哪项不正确", "options": [["A", "指出疾病主要属何系统"], ["B", "指出疾病的急性与慢性"], ["C", "指出疾病并发症的可能"], ["D", "指出疾病的发展和预后"], ["E", "文字精炼，术语准确"]], "type": "single"}, {"id": 13, "question": "浆膜腔积液中出现嗜酸性粒细胞明显增多，多见于", "options": [["A", "结核病"], ["B", "恶性肿瘤"], ["C", "寄生虫病"], ["D", "系统性红斑狼疮"], ["E", "肾病综合症"]], "type": "single"}, {"id": 14, "question": "肝硬化失代偿期最重要的实验室诊断依据是", "options": [["A", "丙氨酸氨基转移酶（ALT）升高"], ["B", "天门冬氨酸氨基转移酶（AST）升高"], ["C", "碱性磷酸酶（ALP）升高"], ["D", "胆红素升高"], ["E", "血清清蛋白（"], ["A", "/球蛋白（G）比值倒置"]], "type": "single"}, {"id": 15, "question": "腰穿取脑脊液检查，不属于禁忌证的是", "options": [["A", "剧烈头痛，偶伴抽搐"], ["B", "昏迷，Biots 呼吸"], ["C", "休克状态"], ["D", "眼底检查，有明显视乳头水肿"], ["E", "第 2～4 腰椎旁有疖肿"]], "type": "single"}, {"id": 16, "question": "男性 23 岁，自觉心悸、胸闷，心率 110 次/分，心尖处可闻一个音调低、强度弱，在 第二心音后，与第一、二心音间距相仿的音响，上述情况应考虑为", "options": [["A", "二尖瓣开瓣音"], ["B", "生理性第三心音"], ["C", "第一心音分裂"], ["D", "第二心音分裂"], ["E", "奔马律"]], "type": "single"}, {"id": 17, "question": "心尖区单纯第一心音增强最常见于", "options": [["A", "贫血"], ["B", "发热"], ["C", "二尖瓣狭窄"], ["D", "甲状腺功能亢进"], ["E", "二尖瓣关闭不全"]], "type": "single"}, {"id": 18, "question": "扪及奇脉时．临床应考虑下列哪种病", "options": [["A", "右心衰竭"], ["B", "肺动脉高压"], ["C", "急性心包积液压塞"], ["D", "多发性大动脉炎"], ["E", "严重心肌损害"]], "type": "single"}, {"id": 19, "question": "下列哪项最有利于大量心包积液的诊断", "options": [["A", "心界明显向双侧增大"], ["B", "心尖搏动明显减弱"], ["C", "颈静脉怒张"], ["D", "心率增快"], ["E", "心浊音界扩大且随体位改变"]], "type": "single"}, {"id": 20, "question": "右心衰竭最早出现的体征是", "options": [["A", "颈静脉怒张"], ["B", "双下肢明显水肿"], ["C", "右心室明显扩张"], ["D", "肝大 5cm"], ["E", "双肺底有少量湿啰音"]], "type": "single"}, {"id": 21, "question": "乳房的触诊顺序为", "options": [["A", "右侧从内上象限开始顺时针触诊"], ["B", "右侧从内上象限开始逆时针触诊"], ["C", "左侧从外上象限开始顺时针触诊"], ["D", "两侧均是从外上象限开始顺时针触诊"], ["E", "左侧从外上象限开始逆时针触诊"]], "type": "single"}, {"id": 22, "question": "鉴别气胸与胸腔积液的最有意义的检查手法是", "options": [["A", "视诊"], ["B", "触诊"], ["C", "叩诊"], ["D", "听诊"], ["E", "嗅诊"]], "type": "single"}, {"id": 23, "question": "关于捻发音的叙述正确的是", "options": [["A", "临床意义与捻发感相同"], ["B", "提示气胸可能"], ["C", "提示胸膜炎"], ["D", "提示皮下气肿"], ["E", "常见于细支气管和肺泡炎症或充血"]], "type": "single"}, {"id": 24, "question": "Kussmaul 呼吸常见于", "options": [["A", "肺炎"], ["B", "腹水"], ["C", "发热"], ["D", "尿毒症早期"], ["E", "糖尿病酮症酸中毒"]], "type": "single"}, {"id": 25, "question": "下列检查中用于检测远端肾小管功能的为", "options": [["A", "浓缩稀释试验"], ["B", "尿β2-M"], ["C", "尿钠"], ["D", "尿 NAG"], ["E", "BUN"]], "type": "single"}, {"id": 26, "question": "当肾小球滤过膜电荷屏障作用减弱时可出现以下哪种成分为主的尿蛋白", "options": [["A", "β2-M"], ["B", "清蛋白"], ["C", "血 C3"], ["D", "IgG"], ["E", "IgM"]], "type": "single"}, {"id": 27, "question": "正常人尿沉渣检查白细胞不超过", "options": [["A", "5 个/HP"], ["B", "3 个/HP"], ["C", "10 个/HP"], ["D", "15 个/HP"], ["E", "8 个/HP"]], "type": "single"}, {"id": 28, "question": "尿 pH 降低见于", "options": [["A", "肾小管酸中毒"], ["B", "呕吐"], ["C", "多食蔬菜"], ["D", "膀胱炎"], ["E", "痛风"]], "type": "single"}, {"id": 29, "question": "关于肝脏触诊，下列哪项是错误的", "options": [["A", "三指并拢，以三指尖端触诊"], ["B", "宜从腹直肌外缘稍外触诊"], ["C", "宜从右下腹开始触诊"], ["D", "吸气时手指上抬速度应慢于腹壁抬起速度"], ["E", "右手指向上触诊移动的跨度不宜过大"]], "type": "single"}, {"id": 30, "question": "心脏搏动视诊的描述下列哪项是错误的", "options": [["A", "心前区隆起多见于先天性心脏病和儿童期起病的风心病"], ["B", "左心室肥大可出现抬举性心尖搏动"], ["C", "右心室肥大心尖搏动向右移位"], ["D", "腹部巨大占位性病变可引起心尖搏动位置的改变"], ["E", "胸骨左缘第 2 肋间搏动可见于正常青年人"]], "type": "single"}, {"id": 31, "question": "关于第二心音分裂错误的是", "options": [["A", "生理性分裂主要见于青年和部分成年人"], ["B", "通常分裂主要见于完全性左束支传导阻滞"], ["C", "通常分裂是多见的类型"], ["D", "逆分裂可见于主动脉瓣狭窄"], ["E", "固定分裂多见于房间隔缺损"]], "type": "single"}, {"id": 32, "question": "以血红蛋白为标准判断成年女性贫血的血红蛋白含量应低于", "options": [["A", "120g/L"], ["B", "110g/L"], ["C", "105g/L"], ["D", "95g/L"], ["E", "90g/L"]], "type": "single"}, {"id": 33, "question": "异型淋巴细胞增多主要见于哪类疾病", "options": [["A", "细菌感染"], ["B", "病毒感染"], ["C", "贫血"], ["D", "白血病"], ["E", "淋巴瘤"]], "type": "single"}, {"id": 34, "question": "以下有关网织红细胞的描述哪项是错误的", "options": [["A", "为未成熟的红细胞"], ["B", "经 Wright 染色为嗜多色性红细胞"], ["C", "其正常值在成人为 2%～3%"], ["D", "胞浆中含核糖核酸"], ["E", "增多提示骨髓造血旺盛"]], "type": "single"}, {"id": 35, "question": "在骨髓细胞学检查中，粒红比值正常可见于哪种病变", "options": [["A", "多发性骨髓瘤"], ["B", "缺铁性贫血"], ["C", "急性化脓菌感染"], ["D", "急性溶血性贫血"], ["E", "慢性粒细胞白血病"]], "type": "single"}, {"id": 36, "question": "心肌梗死最有诊断价值的波形是", "options": [["A", "R 波"], ["B", "ST 段抬高"], ["C", "异常 Q 波"], ["D", "QRS 波"], ["E", "T 波倒置"]], "type": "single"}, {"id": 37, "question": "Q-T 间期反映了", "options": [["A", "心房除极时间"], ["B", "心室除极时间"], ["C", "心室总的电活动时间"], ["D", "房室传导总时间"], ["E", "心室复极时间"]], "type": "single"}, {"id": 38, "question": "诊断左室肥厚必需条件", "options": [["A", "S-T 段异常"], ["B", "电轴左偏"], ["C", "左室面电压增高"], ["D", "T 波异常"], ["E", "QRS 时间≥0.12 秒"]], "type": "single"}, {"id": 39, "question": "下图应诊断", "options": [["A", "一度房室传导阻滞"], ["B", "二度房室传导阻滞"], ["C", "三度房室传导阻滞"], ["D", "交界性心律"], ["E", "以上都不是"]], "type": "single"}, {"id": 40, "question": "男性 30 岁，反复心慌、心悸半年，此图应诊断是", "options": [["A", "窦性心动过速"], ["B", "阵发性室上性心动过速"], ["C", "阵发性室性心动过速"], ["D", "心房扑动"], ["E", "心房颤动 X 型题（41～50）"]], "type": "single"}, {"id": 41, "question": "下列哪些项目属于脑膜剌激征", "options": [["A", "Kernig 征"], ["B", "Lasegue 征"], ["C", "Babinski 征"], ["D", "Brudzinski 征"], ["E", "Chaddock 征"]], "type": "multiple"}, {"id": 42, "question": "蜘蛛痣常见的部位有", "options": [["A", "面部"], ["B", "肩部"], ["C", "下腹部"], ["D", "颈部"], ["E", "下肢"]], "type": "multiple"}, {"id": 43, "question": "有关腹部检查，下列哪些正确", "options": [["A", "正常人肝上界为右锁骨中线第 5 肋间"], ["B", "正常人脾浊音区为左腋中线 9～11 肋间"], ["C", "正常人空腹时不能听到振水音"], ["D", "正常人肠鸣音约 10 次/分"], ["E", "腹部触诊原则是先触诊已诉病痛部位，然后自左下腹开始逆时针方向检查"]], "type": "multiple"}, {"id": 44, "question": "咳嗽患者伴哮鸣音，可见于下列哪些疾病", "options": [["A", "支气管异物"], ["B", "支气管哮喘"], ["C", "支气管肺癌"], ["D", "急性左心衰"], ["E", "慢性支气管炎"]], "type": "multiple"}, {"id": 45, "question": "溶血性黄疸的特点包括", "options": [["A", "血清总胆红素增高"], ["B", "血清非结合胆红素增高"], ["C", "尿胆红素阳性"], ["D", "尿胆原增加"], ["E", "尿隐血试验阳性"]], "type": "multiple"}, {"id": 46, "question": "下列哪些疾病的血清蛋白电泳会出现γ球蛋白增加", "options": [["A", "急性肝炎"], ["B", "慢性活动性肝炎"], ["C", "多发性骨髓瘤"], ["D", "肾病综合征"], ["E", "系统性红斑狼疮"]], "type": "multiple"}, {"id": 47, "question": "语音共振的描述正确的是", "options": [["A", "支气管语音见于肺实变患者"], ["B", "羊鸣音常在中等量胸腔积液区域表面听及"], ["C", "胸语音见于大范围肺实变区域"], ["D", "耳语音在诊断肺实变时具有重要价值"], ["E", "语音共振的产生方式与语音震颤基本相同"]], "type": "multiple"}, {"id": 48, "question": "心脏杂音产生的机制包括", "options": [["A", "血液粘度过高"], ["B", "心腔异物"], ["C", "瓣膜关闭不全"], ["D", "异常血流通道"], ["E", "大血管通道狭窄"]], "type": "multiple"}, {"id": 49, "question": "下列哪些是心力衰竭的诱发因素", "options": [["A", "情绪激动"], ["B", "肺炎"], ["C", "心房颤动并快速心室率"], ["D", "输 5%葡萄糖液过多"], ["E", "输 5%葡萄糖盐水液过多"]], "type": "multiple"}, {"id": 50, "question": "血沉增快见于", "options": [["A", "镰形细胞性贫血"], ["B", "急性心肌梗死"], ["C", "风湿热"], ["D", "妇女月经期"], ["E", "多发性骨髓瘤 二．名词解释（每题 3 分，共 15 分）"]], "type": "multiple"}], "8": [{"id": 1, "question": "引起呼吸困难的病因最多见的是", "options": [["A", "呼吸系统疾病"], ["B", "心血管疾病"], ["C", "中毒"], ["D", "血液病"], ["E", "神经精神因素"]], "type": "single"}, {"id": 2, "question": "全身黄疸，粪便呈白陶土色，可见于", "options": [["A", "胰头癌"], ["B", "溶血性贫血"], ["C", "钩端螺旋体病"], ["D", "肝硬化"], ["E", "重症肝炎"]], "type": "single"}, {"id": 3, "question": "咳嗽与咳痰疾病中，下列哪些疾病最常见", "options": [["A", "中枢神经系统疾病"], ["B", "呼吸道疾病"], ["C", "胸膜疾病"], ["D", "心血管疾病"], ["E", "消化系统疾病"]], "type": "single"}, {"id": 4, "question": "呕血是指", "options": [["A", "屈氏韧带以上的消化器官"], ["B", "幽门以上的器官"], ["C", "十二指肠以上的消化器官"], ["D", "小肠以上的消化器官"], ["E", "结肠以上的消化器官"]], "type": "single"}, {"id": 5, "question": "粘液脓血便伴里急后重可见于", "options": [["A", "消化性溃疡"], ["B", "急性细菌性痢疾"], ["C", "肠结核"], ["D", "小肠血管畸型"], ["E", "结肠癌"]], "type": "single"}, {"id": 6, "question": "咯血患者不该出现下列哪种情况?", "options": [["A", "血色鲜红"], ["B", "痰中有血"], ["C", "咯血前有喉部痒感，咳嗽"], ["D", "咯出酸性物"], ["E", "有肺结核病史"]], "type": "single"}, {"id": 7, "question": "脓血便常见于", "options": [["A", "阿米巴痢疾"], ["B", "细菌性痢疾"], ["C", "溃疡性结肠炎"], ["D", "直肠癌"], ["E", "以上都对"]], "type": "single"}, {"id": 8, "question": "在问诊方法上，下列哪项是不正确的?", "options": [["A", "最好让病人自己叙述"], ["B", "医生必须耐心，态度和蔼"], ["C", "为获得完整、满意的资料，询问时可以给予必要的提示以启发病人思考"], ["D", "对病人不能进行套问和逼问"], ["E", "对危重病人问诊应简要，体检有重点"]], "type": "single"}, {"id": 9, "question": "下列哪项不属于现病史内容?", "options": [["A", "病情的发展与演变"], ["B", "伴随症状"], ["C", "诊疗经过"], ["D", "系统回顾"], ["E", "病程中的一般情况"]], "type": "single"}, {"id": 10, "question": "正常成年人静息状态下呼吸频率为", "options": [["A", "16-20 次/分"], ["B", "20 次/分以上"], ["C", "10 次/分"], ["D", "24 次/分"], ["E", "18-20 次/分"]], "type": "single"}, {"id": 11, "question": "正常情况下,哪个部位不能听到支气管呼吸音", "options": [["A", "喉部"], ["B", "胸骨上窝"], ["C", "肩胛下部"], ["D", "背部第 6、7 颈椎"], ["E", "第 1、2 胸椎附近"]], "type": "single"}, {"id": 12, "question": "语音共振属于", "options": [["A", "视诊"], ["B", "触诊"], ["C", "叩诊"], ["D", "听诊"], ["E", "嗅诊"]], "type": "single"}, {"id": 13, "question": "某患者，患肝炎 10 年，近来出现腹水，腹部隆起，欲查肝脾肿大情况，应选择哪种触 诊方法", "options": [["A", "深部滑行触诊法"], ["B", "深压触诊法"], ["C", "双手触诊法"], ["D", "浅部触诊法"], ["E", "冲击触诊法"]], "type": "single"}, {"id": 14, "question": "患者，男，28 岁，受凉后畏寒、发热、咳嗽、右侧胸痛 5 天。查体：急性病容，右侧 呼吸运动减弱，语音震颤增强，右下肺可闻及支气管呼吸音及胸膜摩檫音。最可能诊断 为", "options": [["A", "右侧大叶性肺炎"], ["B", "右侧支气管炎并胸腔积液"], ["C", "右侧大叶性肺炎并胸膜炎"], ["D", "右侧胸膜炎"], ["E", "右侧肺结核"]], "type": "single"}, {"id": 15, "question": "传染性最强的是", "options": [["A", "HBsAg＋、HBeAg＋、Anti-HBe－、Anti-HBc＋、Anti-HBs－"], ["B", "HBsAg＋、HBeAg－、Anti-HBe－、Anti-HBc＋、Anti-HBs－"], ["C", "HBsAg＋、HBeAg－、Anti-HBe＋、Anti-HBc＋、Anti-HBs－"], ["D", "HBsAg－、HBeAg－、Anti-HBe－、Anti-HBc＋、Anti-HBs－"], ["E", "HBsAg－、HBeAg－、Anti-HBe＋、Anti-HBc＋、Anti-HBs－"]], "type": "single"}, {"id": 16, "question": "剑突下搏动常见于", "options": [["A", "左心室肥大"], ["B", "右心室肥大"], ["C", "右位心"], ["D", "胸腔积液"], ["E", "腹水"]], "type": "single"}, {"id": 17, "question": "关于心脏震颤，下列哪项是错误的", "options": [["A", "触到震颤可肯定有器质性心脏病"], ["B", "常见于某些先天性心脏病及心脏瓣膜狭窄时"], ["C", "其产生机制与心脏杂音相似"], ["D", "有震颤一定能听到杂音，反之亦然"], ["E", "在一定条件下，杂音越响，震颤越强"]], "type": "single"}, {"id": 18, "question": "第一心音减弱不出现于下列何种情况", "options": [["A", "心肌炎"], ["B", "心肌病"], ["C", "心肌梗死"], ["D", "二尖瓣狭窄"], ["E", "二尖瓣关闭不全"]], "type": "single"}, {"id": 19, "question": "关于舒张早期奔马律的叙述，下列哪项是正确的", "options": [["A", "反映左室舒张期压力负荷过重"], ["B", "由 S1、S2 及病理性 S4 构成的节律"], ["C", "也称房性奔马律"], ["D", "听诊最清晰部位在胸骨下端右缘"], ["E", "常见于心力衰竭，急性心肌梗死患者"]], "type": "single"}, {"id": 20, "question": "下列哪种疾病与 Austin-Flint 杂音有关", "options": [["A", "主动脉瓣狭窄"], ["B", "主动脉瓣关闭不全"], ["C", "二尖瓣狭窄"], ["D", "二尖瓣关闭不全"], ["E", "肺动脉瓣狭窄"]], "type": "single"}, {"id": 21, "question": "水冲脉临床上主要见于", "options": [["A", "缩窄性心包炎"], ["B", "二尖瓣狭窄"], ["C", "二尖瓣关闭不全"], ["D", "主动脉瓣狭窄"], ["E", "主动脉瓣关闭不全"]], "type": "single"}, {"id": 22, "question": "一腹壁静脉曲张患者，脐以上血流方向由下至上，脐以下血流由上至下，见于", "options": [["A", "上腔静脉阻塞"], ["B", "下腔静脉阻塞"], ["C", "脐静脉阻塞"], ["D", "门静脉阻塞"], ["E", "脾静脉阻塞"]], "type": "single"}, {"id": 23, "question": "全腹膨隆，腹外形随体位而改变，见于", "options": [["A", "肠梗阻"], ["B", "肥胖症"], ["C", "腹腔积液"], ["D", "人工气腹"], ["E", "巨大卵巢囊肿"]], "type": "single"}, {"id": 24, "question": "关于正常成人肝脏的描述，下列哪项是不正确的", "options": [["A", "正常成人肝脏一般在肋下触不到"], ["B", "腹壁松软的瘦人深吸气时在右肋下可触及肝下缘，但<lcm"], ["C", "腹壁松软的瘦人在剑突下可触及肝下缘，但<3cm"], ["D", "在肋下触及肝下缘提示肝大"], ["E", "腹上角较锐的瘦高者剑突根部下可达 5cm"]], "type": "single"}, {"id": 25, "question": "急性胆囊炎时，下列哪项为阳性", "options": [["A", "Murphy 征"], ["B", "Courvoisier 征"], ["C", "Oliver 征"], ["D", "Grey—Turner 征"], ["E", "Cullen 征"]], "type": "single"}, {"id": 26, "question": "脐周静脉连续性嗡鸣音，见于", "options": [["A", "门脉高压"], ["B", "上腔静脉阻塞"], ["C", "下腔静脉阻塞"], ["D", "睥静脉阻塞"], ["E", "肠系膜静脉阻塞"]], "type": "single"}, {"id": 27, "question": "重度贫血的血红蛋白含量为", "options": [["A", "＜90g/L"], ["B", "＜70g/L"], ["C", "＜60g/L"], ["D", "＜50g/L"], ["E", "＜40g/L"]], "type": "single"}, {"id": 28, "question": "引起绝对性红细胞增多的原因是", "options": [["A", "脱水血液浓缩"], ["B", "严重的心肺疾患"], ["C", "严重的组织损伤"], ["D", "急性大出血"], ["E", "以上均是"]], "type": "single"}, {"id": 29, "question": "淋巴细胞增多见于", "options": [["A", "病毒性感染"], ["B", "寄生虫感染"], ["C", "化脓菌感染"], ["D", "血清病"], ["E", "放射病"]], "type": "single"}, {"id": 30, "question": "浅反射不包括", "options": [["A", "角膜反射"], ["B", "腹壁反射"], ["C", "提睾反射"], ["D", "跖反射"], ["E", "桡骨骨膜反射"]], "type": "single"}, {"id": 31, "question": "Hoffmann 征属于", "options": [["A", "浅反射"], ["B", "深反射"], ["C", "病理反射"], ["D", "脑膜刺激征"], ["E", "神经根受刺激的表现"]], "type": "single"}, {"id": 32, "question": "对主诉的理解是", "options": [["A", "症状加持续时间"], ["B", "主要症状加持续时间"], ["C", "所有症状加持续时间"], ["D", "体征加症状的持续时间"], ["E", "病名加症状持续时间"]], "type": "single"}, {"id": 33, "question": "脑脊液中葡萄糖含量显著减少的疾患是", "options": [["A", "化脓性脑膜炎"], ["B", "结核性脑膜炎"], ["C", "病毒性脑膜炎"], ["D", "脑肿瘤"], ["E", "蛛网膜下腔出血"]], "type": "single"}, {"id": 34, "question": "急性尿道炎时，尿沉渣镜检可见", "options": [["A", "白细胞 1～3 个/HP"], ["B", "大量红细胞"], ["C", "肾细胞 2～4 个/HP"], ["D", "扁平上皮细胞（++）"], ["E", "大量扁平上皮细胞并伴随较多的白细胞"]], "type": "single"}, {"id": 35, "question": "尿内出现白细胞管型时见于", "options": [["A", "急性膀胱炎"], ["B", "慢性肾小球肾炎"], ["C", "急性肾孟肾炎"], ["D", "尿道炎"], ["E", "以上都对"]], "type": "single"}, {"id": 36, "question": "临床检测肾小球滤过功能时，常选用的肾功能试验为", "options": [["A", "内生肌酐清除率"], ["B", "浓缩稀释试验"], ["C", "酚红排泌试验"], ["D", "菊粉清除率"], ["E", "尿渗量"]], "type": "single"}, {"id": 37, "question": "女性，56 岁。临床诊断：风心病，二尖瓣狭窄。写出心电图诊断。(2 分)", "options": [["A", "心房扑动"], ["B", "心房颤动"], ["C", "阵发性房性心动过速"], ["D", "房性早搏"], ["E", "阵发性交界性心动过速"]], "type": "single"}, {"id": 38, "question": "分析下图，请选择正确的诊断。(2 分) 病史：患者，男性，42 岁，体检查心电图。", "options": [["A", "I°房室传导阻滞"], ["B", "II°I 型房室传导阻滞"], ["C", "II°II 型房室传导阻滞"], ["D", "III°房室传导阻滞"], ["E", "以上均不是"]], "type": "single"}, {"id": 39, "question": "分析下图，请选择正确的心律失常诊断。(2 分)", "options": [["A", "室性早搏"], ["B", "室性逸搏"], ["C", "交界性早搏"], ["D", "房性早搏"], ["E", "以上均不是"]], "type": "single"}, {"id": 40, "question": "分析下图，请选择正确的诊断。(2 分) 病史：患者，男性，58 岁，因突发心前区疼痛 2 小时来诊。", "options": [["A", "急性下壁心肌梗死"], ["B", "急性前间壁心肌梗死"], ["C", "超急性前间壁心肌梗死"], ["D", "急性广泛前壁心肌梗死"], ["E", "亚急性广泛前壁心肌梗死 X 型题（41～50）"]], "type": "single"}, {"id": 41, "question": "肿瘤转移性淋巴结肿大的特征有", "options": [["A", "质硬"], ["B", "有压痛"], ["C", "无压痛"], ["D", "易溃破或瘘管"], ["E", "易与周围组织粘连而固定"]], "type": "multiple"}, {"id": 42, "question": "湿性啰音的特点有", "options": [["A", "呼气末较清楚"], ["B", "吸气未较清楚"], ["C", "多样性"], ["D", "性质不定且部位多变"], ["E", "部位较恒定"]], "type": "multiple"}, {"id": 43, "question": "胸膜摩擦音可见于", "options": [["A", "干性胸膜炎"], ["B", "胸腔积液"], ["C", "胸壁水肿"], ["D", "尿毒症"], ["E", "胸膜肿瘤"]], "type": "multiple"}, {"id": 44, "question": "二尖瓣狭窄的体征可有", "options": [["A", "二尖瓣面容"], ["B", "心尖部舒张期杂音，伴舒张期震颤"], ["C", "靴形心"], ["D", "二尖瓣开瓣音"], ["E", "肺动脉瓣区第二音亢进伴分裂"]], "type": "multiple"}, {"id": 45, "question": "舒张期三音律有", "options": [["A", "舒张早期奔马律"], ["B", "舒张晚期奔马律"], ["C", "二尖瓣开瓣音"], ["D", "大动脉口喷射音"], ["E", "喀喇音"]], "type": "multiple"}, {"id": 46, "question": "周围血管征包括", "options": [["A", "水冲脉"], ["B", "毛细血管搏动征"], ["C", "颈静脉怒张"], ["D", "枪击音"], ["E", "Duroziez 双重杂音"]], "type": "multiple"}, {"id": 47, "question": "中枢性瘫痪的特点有", "options": [["A", "肌张力增强"], ["B", "无肌萎缩"], ["C", "腱反射增强"], ["D", "有病理反射"], ["E", "肌张力减弱"]], "type": "multiple"}, {"id": 48, "question": "血沉增快可见于", "options": [["A", "风湿热"], ["B", "急性心肌梗死"], ["C", "心绞痛"], ["D", "胃癌"], ["E", "严重贫血"]], "type": "multiple"}, {"id": 49, "question": "诊断急性心肌梗死的血清酶有", "options": [["A", "丙氨酸氨基转移酶"], ["B", "碱性磷酸酶"], ["C", "肌酸激酶"], ["D", "乳酸脱氢酶"], ["E", "天门冬氨酸氨基转移酶"]], "type": "multiple"}, {"id": 50, "question": "对原发性肝癌诊断有价的检查", "options": [["A", "AFP"], ["B", "PS"], ["A", ""], ["C", "APT"], ["D", "AFU"], ["E", "AN"], ["A", "二、名词解释（每小题 3 分，共 15 分）"]], "type": "multiple"}]}, "answers": {"1": {"1": "B", "2": "C", "3": "D", "4": "B", "5": "D", "6": "C", "7": "C", "8": "D", "9": "B", "10": "C", "11": "C", "12": "C", "13": "A", "14": "D", "15": "B", "16": "B", "17": "D", "18": "A", "19": "E", "20": "B", "21": "A", "22": "B", "23": "E", "24": "A", "25": "B", "26": "BCE", "27": "ADE", "28": "ABC", "29": "ABDE", "30": "ABCD", "31": "ABDE", "32": "CDE", "33": "BDE", "34": "ACE", "35": "BC"}, "2": {"1": "C", "2": "B", "3": "A", "4": "C", "5": "B", "6": "A", "7": "D", "8": "C", "9": "E", "10": "B", "11": "B", "12": "A", "13": "E", "14": "E", "15": "B", "16": "C", "17": "B", "18": "C", "19": "C", "20": "A", "21": "C", "22": "B", "23": "D", "24": "A", "25": "D", "26": "B", "27": "E", "28": "A", "29": "C", "30": "D", "31": "E", "32": "D", "33": "E", "34": "B", "35": "C", "36": "B", "37": "E", "38": "C", "39": "E", "40": "B", "41": "D", "42": "C", "43": "E", "44": "E", "45": "A", "46": "C", "47": "B", "48": "C", "49": "C", "50": "E"}, "3": {"1": "C", "2": "E", "3": "C", "4": "B", "5": "B", "6": "C", "7": "B", "8": "C", "9": "B", "10": "B", "11": "D", "12": "B", "13": "A", "14": "A", "15": "A", "16": "C", "17": "E", "18": "C", "19": "D", "20": "E", "21": "B", "22": "C", "23": "C", "24": "D", "25": "B", "26": "E", "27": "E", "28": "D", "29": "D", "30": "D", "31": "E", "32": "D", "33": "C", "34": "C", "35": "C", "36": "C", "37": "D", "38": "D", "39": "E", "40": "E", "41": "B", "42": "E", "43": "B", "44": "A", "45": "B", "46": "C", "47": "E", "48": "C", "49": "C", "50": "A"}, "4": {"1": "C", "2": "C", "3": "B", "4": "C", "5": "B", "6": "C", "7": "C", "8": "B", "9": "D", "10": "D", "11": "D", "12": "C", "13": "D", "14": "D", "15": "E", "16": "B", "17": "A", "18": "D", "19": "D", "20": "B", "21": "C", "22": "A", "23": "B", "24": "B", "25": "C", "26": "A", "27": "D", "28": "A", "29": "B", "30": "D", "31": "A", "32": "A", "33": "D", "34": "C", "35": "B", "36": "B", "37": "C", "38": "C", "39": "C", "40": "A", "41": "BCD", "42": "ABCE", "43": "ABE", "44": "CDE", "45": "ABE", "46": "AC", "47": "ABCDE", "48": "AC", "49": "CE", "50": "ABD"}, "5": {"1": "A", "2": "B", "3": "A", "4": "B", "5": "D", "6": "B", "7": "B", "8": "D", "9": "B", "10": "E", "11": "C", "12": "D", "13": "B", "14": "E", "15": "D", "16": "C", "17": "D", "18": "C", "19": "C", "20": "A", "21": "B", "22": "D", "23": "E", "24": "D", "25": "D", "26": "D", "27": "A", "28": "C", "29": "D", "30": "E", "31": "D", "32": "C", "33": "E", "34": "C", "35": "B", "36": "B", "37": "B", "38": "D", "39": "A", "40": "E", "41": "ABC", "42": "ABD", "43": "ABCD", "44": "ABCD", "45": "ABC", "46": "ABCDE", "47": "ABC", "48": "ACE", "49": "ACD", "50": "ABCDE"}, "6": {"1": "B", "2": "A", "3": "B", "4": "C", "5": "B", "6": "D", "7": "D", "8": "A", "9": "C", "10": "B", "11": "C", "12": "E", "13": "C", "14": "E", "15": "C", "16": "B", "17": "A", "18": "D", "19": "E", "20": "E", "21": "D", "22": "E", "23": "E", "24": "D", "25": "C", "26": "E", "27": "B", "28": "C", "29": "A", "30": "D", "31": "C", "32": "C", "33": "A", "34": "A", "35": "D", "36": "D", "37": "B", "38": "A", "39": "D", "40": "E", "41": "ABC", "42": "BC", "43": "AE", "44": "ABC", "45": "AC", "46": "C", "47": "ABD", "48": "ADE", "49": "AB", "50": "BDE"}, "7": {"1": "D", "2": "B", "3": "D", "4": "B", "5": "D", "6": "C", "7": "D", "8": "D", "9": "B", "10": "D", "11": "E", "12": "D", "13": "C", "14": "E", "15": "B", "16": "B", "17": "C", "18": "C", "19": "E", "20": "A", "21": "C", "22": "C", "23": "E", "24": "E", "25": "A", "26": "B", "27": "A", "28": "E", "29": "A", "30": "C", "31": "B", "32": "B", "33": "B", "34": "C", "35": "A", "36": "C", "37": "C", "38": "C", "39": "C", "40": "A", "41": "AD", "42": "ABD", "43": "AB", "44": "ABCDE", "45": "ABDE", "46": "BCE", "47": "ABCDE", "48": "ABCDE", "49": "ABCDE", "50": "BCDE"}, "8": {"1": "A", "2": "A", "3": "B", "4": "A", "5": "B", "6": "D", "7": "B", "8": "C", "9": "D", "10": "A", "11": "C", "12": "D", "13": "E", "14": "D", "15": "A", "16": "B", "17": "D", "18": "D", "19": "E", "20": "B", "21": "E", "22": "D", "23": "C", "24": "D", "25": "A", "26": "A", "27": "C", "28": "B", "29": "A", "30": "E", "31": "C", "32": "B", "33": "A", "34": "E", "35": "C", "36": "D", "37": "B", "38": "A", "39": "A", "40": "D", "41": "ACE", "42": "BCE", "43": "ADE", "44": "ABDE", "45": "ABC", "46": "ABDE", "47": "ABCD", "48": "ABDE", "49": "CDE", "50": "ACD"}}, "examNames": ["模拟试题一", "模拟试题二", "模拟试题三", "模拟试题四", "模拟试题五", "模拟试题六", "模拟试题七", "模拟试题八"]};
+Q = __data.questions || {};
+A = __data.answers || {};
+EN = __data.examNames || [];
+document.getElementById('app').innerHTML = '';
+r();
+</script>
+</body>
+</html>

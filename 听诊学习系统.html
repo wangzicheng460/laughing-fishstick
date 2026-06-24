@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>听诊题目集 - 辅助学习系统</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;background:#eef2f7;color:#333;min-height:100vh;}
+.header{background:linear-gradient(135deg,#43a047 0%,#1b5e20 100%);color:white;padding:20px;text-align:center;}
+.header h1{font-size:24px;margin-bottom:5px;}
+.header p{font-size:14px;opacity:0.9;}
+.container{max-width:900px;margin:0 auto;padding:16px;}
+.home-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin:20px 0;}
+.exam-card{background:white;border-radius:12px;padding:20px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.08);transition:all 0.3s;text-align:center;}
+.exam-card:hover{transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,0,0,0.12);}
+.exam-card .score{font-size:28px;font-weight:bold;color:#43a047;margin:8px 0;}
+.exam-card .label{font-size:13px;color:#999;}
+.exam-card .badge{display:inline-block;padding:2px 10px;border-radius:10px;font-size:12px;margin-top:8px;}
+.badge-done{background:#e8f5e9;color:#2e7d32;}
+.badge-partial{background:#fff3e0;color:#e65100;}
+.badge-none{background:#f5f5f5;color:#999;}
+.stats-bar{background:white;border-radius:10px;padding:16px;margin:16px 0;display:flex;justify-content:space-around;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,0.06);flex-wrap:wrap;}
+.stat-item{flex:1;min-width:60px;padding:4px;}
+.stat-num{font-size:22px;font-weight:bold;color:#43a047;}
+.stat-label{font-size:12px;color:#999;margin-top:2px;}
+.toolbar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center;}
+.toolbar button{padding:8px 18px;border:none;border-radius:8px;cursor:pointer;font-size:14px;transition:all 0.2s;}
+.btn-back{background:#e8eaf6;color:#3949ab;}
+.btn-back:hover{background:#c5cae9;}
+.btn-check{background:#43a047;color:white;}
+.btn-check:hover{background:#388e3c;}
+.btn-check:disabled{background:#ccc;cursor:not-allowed;}
+.btn-answer{background:#fff8e1;color:#f57f17;border:1px solid #ffecb3;}
+.btn-answer:hover{background:#ffecb3;}
+.btn-answer.active{background:#ffecb3;border-color:#f57f17;}
+.btn-reset{background:#ffebee;color:#c62828;}
+.btn-reset:hover{background:#ffcdd2;}
+.btn-review{background:#fff3e0;color:#e65100;}
+.btn-review:hover{background:#ffe0b2;}
+.btn-explain{background:#e3f2fd;color:#1565c0;}
+.btn-explain:hover{background:#bbdefb;}
+.btn-ai{background:#f3e5f5;color:#7b1fa2;}
+.btn-ai:hover{background:#e1bee7;}
+.ai-box{background:#f8f9ff;border-radius:10px;padding:14px;margin-top:10px;border:1px solid #e0e0ff;font-size:14px;line-height:1.8;display:none;}
+.ai-box.show{display:block;}
+.ai-box .loading{color:#999;text-align:center;padding:10px;}
+.ai-box .content{white-space:pre-wrap;color:#333;}
+.ai-box .error{color:#c62828;font-size:13px;white-space:pre-wrap;}
+.ai-box .hl-bar{text-align:right;margin-bottom:6px;display:none;}
+.ai-box.show .hl-bar{display:block;}
+.ai-box .hl-btn{background:transparent;border:1px solid #ddd;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:12px;color:#999;transition:all 0.2s;}
+.ai-box .hl-btn:hover{background:#fff8e1;border-color:#FFD54F;color:#F57F17;}
+.ai-box .hl-btn.active{background:#FFEB3B;border-color:#FFD54F;color:#333;}
+.ai-box .hl-btn.erase{color:#999;}
+.ai-box .hl-btn.erase:hover{background:#ffebee;border-color:#ef9a9a;color:#c62828;}
+.ai-box .hl-btn.erase.active{background:#ef9a9a;border-color:#ef9a9a;color:#fff;}
+mark{background:#FFF9C4;padding:0 2px;border-radius:1px;color:inherit;}
+.ai-box .hl-hint{font-size:11px;color:#bbb;text-align:right;margin-top:4px;display:none;}
+.ai-box .hl-hint.show{display:block;}
+.toolbar .spacer{flex:1;}
+.toolbar .q-progress{font-size:14px;color:#666;display:flex;align-items:center;gap:8px;}
+.q-progress select{padding:4px 8px;border-radius:6px;border:1px solid #ddd;font-size:14px;max-height:300px;}
+.q-card{background:white;border-radius:12px;padding:24px;box-shadow:0 2px 8px rgba(0,0,0,0.08);margin-bottom:16px;}
+.q-number{display:inline-block;background:#43a047;color:white;padding:2px 12px;border-radius:12px;font-size:13px;margin-bottom:12px;}
+.q-type{display:inline-block;background:#f0f0f0;color:#666;padding:2px 10px;border-radius:10px;font-size:12px;margin-left:8px;}
+.q-text{font-size:16px;line-height:1.7;margin-bottom:16px;color:#222;white-space:pre-wrap;}
+.options{list-style:none;}
+.option-item{padding:12px 16px;margin-bottom:8px;border:2px solid #e8e8e8;border-radius:10px;cursor:pointer;transition:all 0.2s;display:flex;align-items:flex-start;gap:10px;}
+.option-item:hover{border-color:#a5d6a7;background:#f1faf1;}
+.option-item .letter{display:inline-flex;width:28px;height:28px;border-radius:50%;background:#f5f5f5;align-items:center;justify-content:center;font-weight:bold;font-size:13px;flex-shrink:0;}
+.option-item .text{flex:1;line-height:1.5;white-space:pre-wrap;}
+.option-item.selected{border-color:#43a047;background:#e8f5e9;}
+.option-item.selected .letter{background:#43a047;color:white;}
+.option-item.correct{border-color:#4caf50;background:#e8f5e9;}
+.option-item.correct .letter{background:#4caf50;color:white;}
+.option-item.wrong{border-color:#f44336;background:#ffebee;}
+.option-item.wrong .letter{background:#f44336;color:white;}
+.option-item.missed{border-color:#ff9800;background:#fff3e0;}
+.option-item.missed .letter{background:#ff9800;color:white;}
+.option-item.disabled{cursor:default;opacity:0.9;}
+.feedback{margin-top:16px;padding:16px;border-radius:10px;font-size:14px;display:none;}
+.feedback.show{display:block;}
+.feedback.correct{background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;}
+.feedback.wrong{background:#ffebee;color:#c62828;border:1px solid #ef9a9a;}
+.feedback .ans-detail{margin-top:8px;padding-top:8px;border-top:1px solid rgba(0,0,0,0.1);font-size:13px;}
+.wrong-list{list-style:none;}
+.wrong-item{background:white;border-radius:10px;padding:16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,0.06);}
+.wrong-item .q{font-weight:500;margin-bottom:8px;line-height:1.5;}
+.wrong-item .detail{font-size:13px;color:#666;}
+.wrong-item .detail span.wrong-ans{color:#f44336;font-weight:bold;}
+.wrong-item .detail span.right-ans{color:#4caf50;font-weight:bold;}
+.switch-group{display:flex;background:#f0f0f0;border-radius:10px;padding:3px;}
+.switch-group button{padding:8px 18px;border:none;border-radius:8px;cursor:pointer;font-size:13px;background:transparent;color:#666;transition:all 0.2s;}
+.switch-group button.active{background:white;color:#333;box-shadow:0 1px 3px rgba(0,0,0,0.1);}
+.empty-state{text-align:center;padding:60px 20px;color:#999;}
+.empty-state .icon{font-size:48px;margin-bottom:12px;}
+.empty-state p{font-size:15px;}
+.progress-bar{height:4px;background:#e0e0e0;border-radius:2px;margin-bottom:16px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,#43a047,#66bb6a);transition:width 0.3s;border-radius:2px;width:0%;}
+.audio-note{background:#fff3e0;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#e65100;border:1px solid #ffe0b2;display:flex;align-items:center;gap:8px;}
+.audio-note .icon{font-size:18px;}
+.option-item.show-ans{border-color:#4caf50;background:#e8f5e9;}
+.option-item.show-ans .letter{background:#4caf50;color:white;}
+@media (max-width:600px){.home-grid{grid-template-columns:repeat(2,1fr);gap:10px;}.exam-card{padding:14px;}.exam-card .score{font-size:22px;}.q-card{padding:16px;}.option-item{padding:10px 12px;}.toolbar{gap:6px;}.toolbar button{padding:6px 12px;font-size:13px;}.stats-bar{padding:10px;}.stat-num{font-size:18px;}}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>🎧 听诊题目集</h1>
+  <p>心肺听诊专项训练 · 68 道临床听诊判断题</p>
+</div>
+<div class="container" id="app">
+  <div class="empty-state"><div class="icon">⏳</div><p>加载中...</p></div>
+</div>
+
+<script>
+// ---- Data ----
+var __data = {"questions": {"1": [{"id": 1, "question": "男性67岁，气促、胸闷1年余，心尖部听诊如下，判断原因", "options": [["A", "主动脉瓣关闭不全"], ["B", "主动脉瓣关闭不全伴二尖瓣相对性杂音"], ["C", "二尖瓣狭窄"], ["D", "功能性杂音"]], "type": "single"}, {"id": 2, "question": "心尖部听诊，判断属于何种心律失常", "options": [["A", "窦性心动过缓"], ["B", "二度房室传导阻滞"], ["C", "窦性停搏"], ["D", "三度AVB"]], "type": "single"}, {"id": 3, "question": "患者女性，32岁，面色苍白、心悸气短半年，心尖部听诊如下，请判断属于何种心律失常", "options": [["A", "阵发性室上速"], ["B", "窦性心动过速"], ["C", "房颤"], ["D", "频发早搏"]], "type": "single"}, {"id": 4, "question": "该杂音在心尖部最响，判断其原因", "options": [["A", "主动脉瓣狭窄"], ["B", "二尖瓣狭窄"], ["C", "肺动脉瓣狭窄"], ["D", "二尖瓣关闭不全"]], "type": "single"}, {"id": 5, "question": "鉴别如下听诊音，右肺下部听诊：", "options": [["A", "心包摩擦音"], ["B", "捻发音"], ["C", "胸膜摩擦音"], ["D", "小水泡音"]], "type": "single"}, {"id": 6, "question": "患者男性，52岁，活动后心悸气短3年，不能平卧一天来诊，心尖部听诊如下，判断性质；", "options": [["A", "心房音"], ["B", "生理性第三心音"], ["C", "开瓣音"], ["D", "奔马律"]], "type": "single"}, {"id": 7, "question": "心尖部听诊如下，判断性质", "options": [["A", "舒张晚期奔马律"], ["B", "舒张中期奔马律"], ["C", "舒张早期奔马律"], ["D", "重叠奔马律"]], "type": "single"}, {"id": 8, "question": "心尖部听诊，判断属于何种心律失常", "options": [["A", "窦性心动过速"], ["B", "PSVT"], ["C", "房颤"], ["D", "早搏"]], "type": "single"}, {"id": 9, "question": "该杂音在胸骨左缘第二肋间最响，判断其原因", "options": [["A", "主动脉瓣狭窄"], ["B", "室间隔缺损"], ["C", "肺动脉瓣狭窄"], ["D", "动脉导管未闭"]], "type": "single"}, {"id": 10, "question": "该杂音在胸骨左缘第二肋间最响，判断其原因", "options": [["A", "主动脉瓣狭窄"], ["B", "室间隔缺损"], ["C", "肺动脉瓣狭窄"], ["D", "二尖瓣关闭不全"]], "type": "single"}, {"id": 11, "question": "患者男性，70岁，肺部听诊如下，判断呼吸类型：", "options": [["A", "kussmaul呼吸"], ["B", "cheyne-stokes呼吸"], ["C", "biots呼吸"], ["D", "sighing-breath"]], "type": "single"}, {"id": 12, "question": "该杂音在三尖瓣听诊区最响，判断其原因", "options": [["A", "肺动脉瓣狭窄"], ["B", "室间隔缺损"], ["C", "三尖瓣关闭不全"], ["D", "主动脉瓣狭窄"]], "type": "single"}, {"id": 13, "question": "患者女性，24岁，与男友生气后出现呼吸困难，肺部听诊如下，请判断", "options": [["A", "癔症性呼吸困难"], ["B", "急性左心衰竭"], ["C", "哮喘"], ["D", "酮症酸中毒"]], "type": "single"}, {"id": 14, "question": "左肺上部听诊，鉴别属于哪种湿罗音", "options": [["A", "大水泡音"], ["B", "小水泡音"], ["C", "捻发音"], ["D", "Velcro罗音"]], "type": "single"}, {"id": 15, "question": "患者女性，38岁，消瘦、怕热、易激动半年，半天前突然出现心悸，心尖部听诊如下，请判断此患者属于何种心律失常", "options": [["A", "窦性心动过速"], ["B", "房颤"], ["C", "阵发性室上速"], ["D", "阵发性室速"]], "type": "single"}, {"id": 16, "question": "男性，28岁，3小时前用力憋气病史，出现胸痛及进行性加重的呼吸困难，肺部听诊如下：", "options": [["A", "左侧胸腔积液"], ["B", "右侧气胸"], ["C", "心肌梗死"], ["D", "气管异物"]], "type": "single"}, {"id": 17, "question": "心尖部听诊，判断属于何种心律失常", "options": [["A", "窦性心动过速"], ["B", "二联律"], ["C", "四联律"], ["D", "阵发性室性心动过速"]], "type": "single"}, {"id": 18, "question": "患者女性，55岁，肺部听诊如下，判断呼吸类型：", "options": [["A", "sighing-breath"], ["B", "cheyne-stokes呼吸"], ["C", "biots呼吸"], ["D", "kussmaul呼吸"]], "type": "single"}, {"id": 19, "question": "男性，52岁，半年前超声心动检查发现左房粘液瘤，心尖部听诊如下，判断性质", "options": [["A", "奔马律"], ["B", "开瓣音"], ["C", "心包叩击音"], ["D", "肿瘤扑落音"]], "type": "single"}, {"id": 20, "question": "患者女性，52岁，模拟人肺部听诊如下，请判断：", "options": [["A", "急性左心衰"], ["B", "支气管哮喘"], ["C", "酸中毒"], ["D", "癔症"]], "type": "single"}, {"id": 21, "question": "鉴别如下湿罗音，听诊部位是右肺下部", "options": [["A", "大水泡音"], ["B", "小水泡音"], ["C", "捻发音"], ["D", "Velcro罗音"]], "type": "single"}, {"id": 22, "question": "在心尖部内侧听诊，判断性质", "options": [["A", "第三心音"], ["B", "开瓣音"], ["C", "房性奔马律"], ["D", "心包叩击音"]], "type": "single"}, {"id": 23, "question": "男性，47岁，胸骨左缘第三肋间听诊如下，判断原因", "options": [["A", "主动脉瓣狭窄"], ["B", "主动脉瓣关闭不全"], ["C", "主动脉瓣狭窄伴关闭不全"], ["D", "室间隔缺损"]], "type": "single"}, {"id": 24, "question": "患者男性，22岁，体检时心尖部听诊如下，请判断原因：", "options": [["A", "二尖瓣关闭不全"], ["B", "二尖瓣狭窄"], ["C", "窦性心律不齐"], ["D", "生理性杂音"]], "type": "single"}, {"id": 25, "question": "患者女性，44岁，二尖瓣面容，心尖部听诊如下，判断性质：", "options": [["A", "奔马律"], ["B", "开瓣音"], ["C", "生理性第三心音"], ["D", "心房音"]], "type": "single"}, {"id": 26, "question": "肺部听诊，鉴别如下湿罗音", "options": [["A", "大水泡音"], ["B", "小水泡音"], ["C", "捻发音"], ["D", "Velcro罗音"]], "type": "single"}, {"id": 27, "question": "患者女性，23岁，心尖部听诊，判断性质：", "options": [["A", "奔马律"], ["B", "生理性第三心音"], ["C", "心房音"], ["D", "开瓣音"]], "type": "single"}, {"id": 28, "question": "患儿，男，3岁，查体胸骨左缘第二肋间听诊如下，指甲可见毛细血管搏动，考虑诊断是", "options": [["A", "肺动脉瓣狭窄"], ["B", "动脉导管未闭"], ["C", "fallot四联症"], ["D", "房间隔缺损"]], "type": "single"}, {"id": 29, "question": "男，78岁，心慌气短心悸15天，心前区听诊发现的异常为？", "options": [["A", "胸膜摩擦音"], ["B", "全收缩期杂音"], ["C", "哼鸣音"], ["D", "心包摩擦音"]], "type": "single"}, {"id": 30, "question": "男性60岁，高血压性心脏病10余年，近来呼吸困难，不能平卧，两肺底听诊：", "options": [["A", "右侧气胸"], ["B", "哮喘"], ["C", "左心衰竭"], ["D", "右侧胸腔积液"]], "type": "single"}, {"id": 31, "question": "患者男性，30岁，自幼咳嗽，3天前咯血，体检时两肺底听诊如下，请判断：", "options": [["A", "肺结核"], ["B", "哮喘"], ["C", "右上大叶肺炎"], ["D", "支气管扩张症"]], "type": "single"}, {"id": 32, "question": "患者男性，55岁，2天前开始口服倍他乐克100mg，每日两次，之后出现心悸来诊，心尖部听诊如下", "options": [["A", "窦性心动过缓"], ["B", "三度房室传导阻滞"], ["C", "二度房室传导阻滞"], ["D", "窦性心律不齐"]], "type": "single"}, {"id": 33, "question": "鉴别如下听诊音，听诊部位，右肺中部", "options": [["A", "干罗音"], ["B", "小水泡音"], ["C", "Velcro罗音"], ["D", "捻发音"]], "type": "single"}, {"id": 34, "question": "患者男性，60岁，肺部听诊如下，判断呼吸类型：", "options": [["A", "kussmaul呼吸"], ["B", "cheyne-stokes呼吸"], ["C", "biots呼吸"], ["D", "sighing-breath"]], "type": "single"}, {"id": 35, "question": "男性，45岁，曾因反复晕厥就诊，诊为病态窦房结综合征，一年前安装心脏起搏器，心尖部内上方听诊如下，判断性质", "options": [["A", "大炮音"], ["B", "起搏音"], ["C", "主动脉喷射音"], ["D", "膈肌音"]], "type": "single"}, {"id": 36, "question": "心尖部听诊，判断属于何种心律失常", "options": [["A", "二联律"], ["B", "三联律"], ["C", "阵发性室性心动过速"], ["D", "四联律"]], "type": "single"}, {"id": 37, "question": "该杂音在心尖部最响，判断其原因", "options": [["A", "主动脉瓣狭窄"], ["B", "室间隔缺损"], ["C", "肺动脉瓣狭窄"], ["D", "二尖瓣关闭不全"]], "type": "single"}, {"id": 38, "question": "患者男性，18岁，胸骨左缘第二肋间听诊如下，判断原因", "options": [["A", "先天性肺动脉瓣狭窄"], ["B", "生理性杂音"], ["C", "右心室肥大"], ["D", "房间隔缺损"]], "type": "single"}, {"id": 39, "question": "心尖部听诊，判断属于何种心律失常", "options": [["A", "二联律"], ["B", "偶发早搏"], ["C", "二度房室传导阻滞"], ["D", "窦性心律不齐"]], "type": "single"}, {"id": 40, "question": "男性74岁，患老年性退行性瓣膜病，胸骨右缘第二肋间听诊如下，听诊有何异常？", "options": [["A", "收缩期喷射样杂音"], ["B", "连续性机器样杂音"], ["C", "舒张期叹气样杂音"], ["D", "吹风样收缩期杂音"]], "type": "single"}, {"id": 41, "question": "男性74岁 老年性退行性瓣膜病，胸骨右缘第二肋间听诊如下，判断原因？", "options": [["A", "室间隔缺损"], ["B", "主动脉瓣关闭不全"], ["C", "主动脉瓣狭窄伴关闭不全"], ["D", "主动脉瓣狭窄"]], "type": "single"}, {"id": 42, "question": "女性，53岁，心尖部听诊如下，判断原因", "options": [["A", "单纯二尖瓣狭窄"], ["B", "二尖瓣狭窄伴关闭不全"], ["C", "单纯二尖瓣关闭不全"], ["D", "生理性杂音"]], "type": "single"}, {"id": 43, "question": "该杂音在胸骨右缘第二肋间最响，判断其原因", "options": [["A", "室间隔缺损"], ["B", "二尖瓣关闭不全"], ["C", "肺动脉瓣狭窄"], ["D", "主动脉瓣狭窄"]], "type": "single"}, {"id": 44, "question": "男，78岁，心慌气短心悸15天，心前区听诊发现的异常为？", "options": [["A", "胸膜摩擦音"], ["C", "哮鸣音"], ["D", "心包摩擦音"]], "type": "single"}, {"id": 45, "question": "男性60岁，急性广泛前壁心肌梗死，心尖部听诊，判断性质", "options": [["A", "心包摩擦音"], ["B", "第三心音（S3）"], ["C", "二尖瓣狭窄"], ["D", "大炮音"]], "type": "single"}, {"id": 46, "question": "心尖部听诊，判断属于何种心律失常", "options": [["A", "房颤"], ["B", "二联律"], ["C", "窦性心动过速"], ["D", "频发早搏"]], "type": "single"}, {"id": 47, "question": "患者男性，60岁，高血压病史10余年，活动后心悸气短3天来诊，心尖部听诊如下，判断性质：", "options": [["A", "心房音"], ["B", "生理性第三心音"], ["C", "开瓣音"], ["D", "第一心音分裂"]], "type": "single"}, {"id": 48, "question": "女性，45岁，活动后心悸气短6年，曾做超声心动图诊断为风湿性心脏二尖瓣狭窄，一年前行人工瓣膜置换术，心尖部听诊如下，判断性质", "options": [["A", "大炮音"], ["B", "起搏音"], ["C", "人工瓣膜音"], ["D", "膈肌音"]], "type": "single"}, {"id": 49, "question": "患儿男性，9岁，查体皮肤粘膜紫绀，心前区隆起，胸骨左缘第2、3肋间听诊如下，可触及震颤，超声检查报告：室间隔缺损、主动脉骑跨、肺动脉狭窄和右心室肥厚。考虑诊断为：", "options": [["A", "Fallot四联症"], ["B", "室间隔缺损"], ["C", "器质性肺动脉瓣狭窄"], ["D", "房间隔缺损"]], "type": "single"}, {"id": 50, "question": "该杂音在胸骨左缘3、4肋间最响，判断其原因", "options": [["A", "肺动脉瓣狭窄"], ["B", "主动脉瓣狭窄"], ["C", "二尖瓣关闭不全"], ["D", "室间隔缺损"]], "type": "single"}, {"id": 51, "question": "男性 67岁 气促、胸闷1年余，心尖部听诊如下，听诊有何异常？", "options": [["A", "吹风样收缩期杂音"], ["B", "舒张期隆隆样杂音"], ["C", "舒张期叹气样杂音"], ["D", "收缩期喷射样杂音"]], "type": "single"}, {"id": 52, "question": "患者男性，50岁，慢性支气管炎20年，胸骨左缘第二肋间听诊如下，判断性质", "options": [["A", "第二心音逆分裂"], ["B", "生理性杂音"], ["C", "第二心音顺分裂"], ["D", "第二心音固定分裂"]], "type": "single"}, {"id": 53, "question": "患者男性，22岁，体检时心尖部听诊如下，请判断：", "options": [["A", "逸搏心律"], ["B", "房颤"], ["C", "偶发早搏"], ["D", "窦性心律不齐"]], "type": "single"}, {"id": 54, "question": "触诊间歇脉，心尖部听诊如下，判断由于何种原因引起", "options": [["A", "二度房室传导阻滞"], ["B", "窦性停搏"], ["C", "早搏"], ["D", "房颤"]], "type": "single"}, {"id": 55, "question": "女性35岁 胸骨左缘第二肋间听诊如下，听诊有何异常？", "options": [["A", "吹风样收缩期杂音"], ["B", "舒张期隆隆样杂音"], ["C", "舒张期叹气样杂音"], ["D", "收缩期喷射样杂音"]], "type": "single"}, {"id": 56, "question": "男性，50岁，曾患病态窦房结综合征，心尖部听诊如下，判断性质", "options": [["A", "额外心音"], ["B", "杂音"], ["C", "大炮音"], ["D", "心房音"]], "type": "single"}, {"id": 57, "question": "患者男性，23岁，胸骨左缘第二肋间听诊如下，判断性质", "options": [["A", "奔马律"], ["B", "生理性第三心音"], ["C", "第二心音分裂"], ["D", "开瓣音"]], "type": "single"}, {"id": 58, "question": "患者男性，28岁，发热3天伴心前区痛，查体心前区听诊如下，判断病因", "options": [["A", "急性心包炎"], ["B", "心绞痛"], ["C", "急性心肌梗死"], ["D", "胸膜炎"]], "type": "single"}, {"id": 59, "question": "心尖部听诊，判断性质", "options": [["A", "隆隆样杂音"], ["B", "叹气样杂音"], ["C", "吹风样杂音"], ["D", "Austin-Flint杂音"]], "type": "single"}, {"id": 60, "question": "男性，40岁，胸骨左缘第三肋间听诊如下，判断原因", "options": [["A", "主动脉瓣狭窄"], ["B", "主动脉瓣关闭不全"], ["C", "室间隔缺损"], ["D", "二尖瓣关闭不全"]], "type": "single"}, {"id": 61, "question": "男性，49岁，3年前曾患结核性心包积液，住院治疗后痊愈，近月余出现活动后心悸气短，心尖部听诊如下，判断性质", "options": [["A", "开瓣音"], ["B", "肿瘤扑落音"], ["C", "心包叩击音"], ["D", "奔马律"]], "type": "single"}, {"id": 62, "question": "男性，65岁，10年前诊为病态窦房结综合征，一年前安装心脏起搏器，胸骨下端听诊如下，判断性质", "options": [["A", "大炮音"], ["B", "起搏音"], ["C", "主动脉喷射音"], ["D", "膈肌音"]], "type": "single"}, {"id": 63, "question": "患者女性，55岁，查体心率120次，请肺部听诊，判断性质：", "options": [["A", "酮症酸中毒"], ["B", "急性左心衰竭"], ["C", "支气管哮喘"], ["D", "肺纤维化"]], "type": "single"}, {"id": 64, "question": "患者女性，55岁，活动后心前区不适3年，心悸气短1天来诊，心尖部听诊如下，判断性质：", "options": [["A", "舒张中期奔马律"], ["B", "生理性第三心音"], ["C", "喷射音"], ["D", "心包叩击音"]], "type": "single"}, {"id": 65, "question": "男性，30岁，月余前发热、右侧胸痛，几天前开始出现越来越重的呼吸困难，肺部听诊", "options": [["A", "右侧大量胸腔积液"], ["B", "左侧气胸"], ["C", "左侧胸腔积液"], ["D", "右侧肺炎"]], "type": "single"}, {"id": 66, "question": "患者女性，28岁，寒战、高热、咳嗽5天，模拟人右肺上部听诊，请判断：", "options": [["A", "右肺上叶肺炎实变"], ["B", "右侧胸腔积液"], ["C", "哮喘"], ["D", "急性左心衰"]], "type": "single"}, {"id": 67, "question": "患者男性，52岁，肺部听诊如下，判断呼吸类型：", "options": [["A", "sighing-breath"], ["B", "kussmaul呼吸"], ["C", "biots呼吸"], ["D", "cheyne-stokes呼吸"]], "type": "single"}, {"id": 68, "question": "鉴别如下湿罗音，听诊部位是两肺后下部", "options": [["A", "大水泡音"], ["B", "小水泡音"], ["C", "捻发音"], ["D", "Velcro罗音"]], "type": "single"}]}, "answers": {"1": {"1": "C", "2": "D", "3": "A", "4": "B", "5": "C", "6": "D", "7": "C", "8": "A", "9": "D", "10": "C", "11": "B", "12": "C", "13": "A", "14": "A", "15": "A", "16": "B", "17": "A", "18": "A", "19": "D", "20": "B", "21": "B", "22": "B", "23": "D", "24": "D", "25": "B", "26": "A", "27": "A", "28": "B", "29": "D", "30": "B", "31": "D", "32": "A", "33": "A", "34": "A", "35": "B", "36": "C", "37": "D", "38": "D", "39": "A", "40": "A", "41": "B", "42": "C", "43": "D", "44": "D", "45": "B", "46": "D", "47": "C", "48": "C", "49": "A", "50": "D", "51": "D", "52": "C", "53": "D", "54": "C", "55": "A", "56": "C", "57": "D", "58": "A", "59": "A", "60": "C", "61": "C", "62": "B", "63": "C", "64": "A", "65": "A", "66": "A", "67": "C", "68": "C"}}, "examNames": ["听诊题目集"]};
+var Q = {}, A = {}, EN = [];
+
+// State
+var st = {curExam: null, curQ: 0, answers: {}, checked: {}, explanations: {}, showAnswers: {}, wrongOnly: false, mode: 'exam'};
+try { var sv = localStorage.getItem('tz'); if (sv) { var p = JSON.parse(sv); st.answers = p.answers || {}; st.checked = p.checked || {}; st.explanations = p.explanations || {}; st.showAnswers = p.showAnswers || {}; } } catch(e) {}
+function save() { try { localStorage.setItem('tz', JSON.stringify({answers: st.answers, checked: st.checked, explanations: st.explanations, showAnswers: st.showAnswers})); } catch(e) {} }
+
+// Labels
+var S = {
+  total: '总题数', done: '已答题', correct: '正确', wrong: '错题', rate: '正确率',
+  all: '全部', ow: '仅错题', check: '判断正误', cked: '已判断',
+  reset: '重置', back: '← 返回', prev: '← 上一题', next: '下一题 →',
+  ca: '正确答案：', ya: '你的答案：', nodata: '暂无题目数据',
+  nw: '✅ 全部答对！', cf: '✅ 回答正确！', wf: '❌ 回答错误',
+  s: '单选题', ns: '未开始', pg: '进行中', d2: '已完成',
+  ws: '错题集', na: '未作答', cl: '清空',
+  gp: '去练习', emp: '暂无错题，继续加油！', sel: '请先选择一个答案！',
+  c1: '确定要重置当前答题记录吗？', c2: '确定要清空所有答题记录吗？'
+};
+
+function gn(i) { return EN[i-1] || '听诊题目集'; }
+function ga(e, q) { return (A[String(e)] || {})[String(q)] || ''; }
+function gq(e) { return Q[String(e)] || []; }
+function im(a) { return a && a.length > 1 && /^[A-E]+$/.test(a); }
+function n(a) { return (a||'').toUpperCase().split('').sort().join(''); }
+function ic(e, q) { var u = (st.answers[e]||{})[q] || '', c = ga(e, q); return u ? n(u) === n(c) : null; }
+function ges(e) { var qs = gq(e), t = qs.length, d = 0, c = 0; for (var i = 0; i < qs.length; i++) { var q = qs[i]; if ((st.checked[e]||{})[q.id]) { d++; if (ic(e, q.id)) c++; } } return {total: t, done: d, correct: c, wrong: d - c}; }
+function ggs() { var t = 0, d = 0, c = 0; for (var i = 1; i <= EN.length; i++) { var s = ges(i); t += s.total; d += s.done; c += s.correct; } return {total: t, done: d, correct: c, wrong: d - c}; }
+
+function r() { var ap = document.getElementById('app'); if (st.mode === 'exam' && st.curExam === null) rh(ap); else if (st.mode === 'exam') re(ap); else rw(ap); }
+
+function rh(c) {
+  var g = ggs(), h = '<div class="stats-bar">' +
+    '<div class="stat-item"><div class="stat-num">' + g.total + '</div><div class="stat-label">' + S.total + '</div></div>' +
+    '<div class="stat-item"><div class="stat-num">' + g.done + '</div><div class="stat-label">' + S.done + '</div></div>' +
+    '<div class="stat-item"><div class="stat-num" style="color:#4caf50">' + g.correct + '</div><div class="stat-label">' + S.correct + '</div></div>' +
+    '<div class="stat-item"><div class="stat-num" style="color:#f44336">' + g.wrong + '</div><div class="stat-label">' + S.wrong + '</div></div>' +
+    '<div class="stat-item"><div class="stat-num">' + (g.done ? Math.round(g.correct/g.done*100) + '%' : '-') + '</div><div class="stat-label">' + S.rate + '</div></div></div><div class="home-grid">';
+  for (var i = 1; i <= EN.length; i++) {
+    var s = ges(i), pct = s.done ? Math.round(s.correct/s.done*100) : 0;
+    var bg = '<span class="badge badge-none">' + S.ns + '</span>', stxt = '-';
+    if (s.done === s.total && s.total > 0) { bg = '<span class="badge badge-done">' + S.d2 + '</span>'; stxt = s.correct + '/' + s.total; }
+    else if (s.done > 0) { bg = '<span class="badge badge-partial">' + S.pg + '</span>'; stxt = s.correct + '/' + s.total; }
+    h += '<div class="exam-card" onclick="ee(' + i + ')"><div style="font-weight:600;font-size:15px;margin-bottom:4px;">' + gn(i) + '</div><div class="score">' + stxt + '</div><div class="label">' + S.rate + ': ' + (s.done ? pct + '%' : '-') + '</div>' + bg + '</div>';
+  }
+  h += '</div>';
+  if (g.wrong > 0) h += '<div style="text-align:center;margin-top:16px;"><button class="btn-review" onclick="ew()" style="padding:12px 32px;font-size:16px;">📝 ' + S.ws + ' (' + g.wrong + ' ' + S.wrong + ')</button></div>';
+  h += '<div style="background:white;border-radius:10px;padding:16px;margin-top:16px;box-shadow:0 1px 4px rgba(0,0,0,0.06);font-size:13px;color:#666;line-height:1.6;">';
+  h += '<div style="font-weight:600;color:#333;margin-bottom:8px;">🤖 AI 解析使用方法</div>';
+  h += '<div>1. 打开终端，运行：<code style="background:#f0f0f0;padding:1px 6px;border-radius:4px;">python ai_server.py</code></div>';
+  h += '<div>2. 在浏览器打开 <b><a href="http://localhost:5001/tingzhen" target="_blank" style="color:#43a047;">http://localhost:5001/tingzhen</a></b></div>';
+  h += '<div>3. 答题后点击 <b>🤖 AI解析</b> 按钮即可获得详细解析</div>';
+  h += '</div>';
+  c.innerHTML = h;
+}
+
+function re(c) {
+  var e = st.curExam, qs = gq(e);
+  if (qs.length === 0) { c.innerHTML = '<div class="empty-state"><p>' + S.nodata + '</p></div>'; return; }
+  if (st.wrongOnly) qs = qs.filter(function(q) { return (st.checked[e]||{})[q.id] && !ic(e, q.id); });
+  if (qs.length === 0) { c.innerHTML = '<div class="toolbar"><button class="btn-back" onclick="ex()">' + S.back + '</button><span style="color:#4caf50;font-weight:500;">' + S.nw + '</span></div>'; return; }
+  if (st.curQ >= qs.length) st.curQ = 0;
+  var q = qs[st.curQ], s = ges(e), ca = ga(e, q.id), ima = im(ca);
+  var ua = (st.answers[e]||{})[q.id] || '', ich = (st.checked[e]||{})[q.id] || false, res = ich ? ic(e, q.id) : null;
+  var pct = s.total > 0 ? Math.round(s.done/s.total*100) : 0;
+
+  var h = '<div class="toolbar"><button class="btn-back" onclick="ex()">' + S.back + '</button><button class="btn-review" onclick="ew()">📝 ' + S.wrong + '</button><button class="btn-answer' + ((st.showAnswers[e]||{})[q.id] ? ' active' : '') + '" onclick="tsa()">👁 答案</button><div class="spacer"></div><div class="q-progress"><span>' + gn(e) + '</span><span style="color:#999;font-size:12px;">' + s.correct + '/' + s.done + '/' + s.total + '</span></div></div>' +
+    '<div class="progress-bar"><div class="progress-fill" style="width:' + pct + '%"></div></div>' +
+    '<div class="toolbar"><div class="switch-group"><button class="' + (!st.wrongOnly?'active':'') + '" onclick="tw(false)">' + S.all + '</button><button class="' + (st.wrongOnly?'active':'') + '" onclick="tw(true)">' + S.ow + '</button></div><div class="spacer"></div><select onchange="jt(parseInt(this.value))" style="max-width:200px;">';
+  for (var i = 0; i < qs.length; i++) {
+    var mk = (st.checked[e]||{})[qs[i].id] ? (ic(e, qs[i].id) ? '✅' : '❌') : '○';
+    h += '<option value="' + i + '" ' + (i === st.curQ ? 'selected' : '') + '>' + qs[i].id + '. ' + mk + '</option>';
+  }
+  h += '</select><button class="btn-check" onclick="ca2()"' + (ich ? ' disabled' : '') + '>' + (ich ? S.cked : S.check) + '</button><button class="btn-reset" onclick="rs()">' + S.reset + '</button></div>' +
+    '<div class="q-card"><div><span class="q-number">第 ' + q.id + ' 题</span><span class="q-type">' + S.s + '</span></div>' +
+    '<div class="audio-note"><span class="icon">🎧</span><span>本题为听诊题，请根据听诊音频或描述判断答案</span></div>' +
+    '<div class="q-text">' + q.question + '</div><ul class="options">';
+  for (var i = 0; i < q.options.length; i++) {
+    var o = q.options[i], sel = ua.includes(o[0]), cl = '';
+    var showAns = (st.showAnswers[e]||{})[q.id];
+    if (sel && !ich) cl = 'selected';
+    else if (ich) { if (sel && res) cl = 'correct'; else if (sel && !res) cl = 'wrong'; else if (!sel && ca.includes(o[0])) cl = 'missed'; }
+    if (ich) cl += ' disabled';
+    if (showAns && ca.includes(o[0])) cl += ' show-ans';
+    h += '<li class="option-item ' + cl + '" onclick="' + (ich ? '' : "to('" + o[0] + "')") + '"><span class="letter">' + o[0] + '</span><span class="text">' + o[1] + '</span></li>';
+  }
+  h += '</ul>';
+  if (ich) h += '<div class="feedback show ' + (res?'correct':'wrong') + '">' + (res ? S.cf : S.wf) + '<div class="ans-detail"><strong>' + S.ca + '</strong>' + ca + '</div><div class="ans-detail"><strong>' + S.ya + '</strong>' + (ua || S.na) + '</div><div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;"><button class="btn-ai" onclick="ai_explain(' + e + ',' + q.id + ')" style="padding:6px 16px;border:none;border-radius:6px;cursor:pointer;font-size:13px;">🤖 AI解析</button></div><div id="explain-' + e + '-' + q.id + '" class="ai-box"></div></div>';
+  h += '</div><div style="display:flex;gap:10px;justify-content:center;margin-top:8px;"><button class="btn-back" onclick="pq()"' + (st.curQ === 0 ? ' disabled' : '') + ' style="padding:10px 24px;">' + S.prev + '</button><button class="btn-back" onclick="nq()"' + (st.curQ >= qs.length-1 ? ' disabled' : '') + ' style="padding:10px 24px;">' + S.next + '</button></div>';
+  c.innerHTML = h;
+  if (ich) { setTimeout(function() { showCachedExplanations(e, q.id); }, 10); }
+}
+
+function rw(c) {
+  var items = [];
+  for (var e = 1; e <= EN.length; e++) { for (var j = 0; j < (Q[String(e)]||[]).length; j++) { var q = Q[String(e)][j]; if ((st.checked[e]||{})[q.id] && !ic(e, q.id)) items.push({eid: e, en: gn(e), q: q, ua: (st.answers[e]||{})[q.id]||'', ca: ga(e, q.id)}); } }
+  var h = '<div class="toolbar"><button class="btn-back" onclick="exw()">' + S.back + '</button><div class="spacer"></div><span style="font-size:14px;color:#666;">共 ' + items.length + ' ' + S.wrong + '</span><button class="btn-reset" onclick="ca3()" style="margin-left:8px;">' + S.cl + '</button></div>';
+  if (items.length === 0) h += '<div class="empty-state"><div class="icon">🎉</div><p>' + S.emp + '</p></div>';
+  else {
+    h += '<ul class="wrong-list">';
+    for (var i = 0; i < items.length; i++) { var it = items[i]; h += '<li class="wrong-item"><div class="q">第 ' + it.q.id + ' 题：' + it.q.question + '</div><div class="detail">你的答案：<span class="wrong-ans">' + (it.ua || S.na) + '</span> | ' + S.ca + '<span class="right-ans">' + it.ca + '</span></div><div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;"><button class="btn-back" onclick="ee(' + it.eid + ');setTimeout(function(){ jtq(' + it.q.id + ') },100)" style="font-size:12px;padding:4px 12px;">' + S.gp + '</button><button class="btn-ai" onclick="ai_explain(' + it.eid + ',' + it.q.id + ')" style="font-size:12px;padding:4px 12px;border:none;border-radius:6px;cursor:pointer;">🤖 AI解析</button></div><div id="explain-' + it.eid + '-' + it.q.id + '" class="ai-box"></div></li>'; }
+    h += '</ul>';
+  }
+  c.innerHTML = h;
+  setTimeout(function() {
+    for (var i = 0; i < items.length; i++) {
+      showCachedExplanations(items[i].eid, items[i].q.id);
+    }
+  }, 10);
+}
+
+function ee(id) { st.curExam = id; st.curQ = 0; st.wrongOnly = false; st.mode = 'exam'; r(); }
+function ex() { st.curExam = null; st.mode = 'exam'; r(); }
+function ew() { st.mode = 'wrong'; r(); }
+function exw() { st.mode = 'exam'; if (st.curExam === null) r(); else re(document.getElementById('app')); }
+function tw(v) { st.wrongOnly = v; st.curQ = 0; r(); }
+
+function to(l) {
+  var e = st.curExam, qs = gq(e);
+  if (st.wrongOnly) qs = qs.filter(function(q) { return (st.checked[e]||{})[q.id] && !ic(e, q.id); });
+  if (!qs.length) return;
+  var q = qs[st.curQ];
+  if (!st.answers[e]) st.answers[e] = {};
+  if (!st.answers[e][q.id]) st.answers[e][q.id] = '';
+  st.answers[e][q.id] = l;
+  save(); r();
+}
+
+function ca2() {
+  var e = st.curExam, qs = gq(e);
+  if (st.wrongOnly) qs = qs.filter(function(q) { return (st.checked[e]||{})[q.id] && !ic(e, q.id); });
+  if (!qs.length) return;
+  var q = qs[st.curQ];
+  if (!(st.answers[e]||{})[q.id]) { alert(S.sel); return; }
+  if (!st.checked[e]) st.checked[e] = {};
+  st.checked[e][q.id] = true;
+  save(); r();
+}
+
+function jt(i) { st.curQ = i; r(); }
+function jtq(qid) { var qs = gq(st.curExam); for (var i = 0; i < qs.length; i++) { if (qs[i].id === qid) { st.curQ = i; r(); return; } } }
+function pq() { if (st.curQ > 0) { st.curQ--; r(); } }
+function nq() { var e = st.curExam, qs = gq(e); if (st.wrongOnly) qs = qs.filter(function(q) { return (st.checked[e]||{})[q.id] && !ic(e, q.id); }); if (st.curQ < qs.length-1) { st.curQ++; r(); } }
+
+// Keyboard shortcuts: ← 上一题  → 下一题  A 显示答案
+document.addEventListener('keydown', function(e) {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+  if (st.mode !== 'exam' || st.curExam === null) return;
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); pq(); }
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); nq(); }
+  if (e.key === 'a' || e.key === 'A') { e.preventDefault(); tsa(); }
+});
+
+// AI Explanation
+function ai_explain(eid, qid) {
+  var qs = gq(eid);
+  for (var i = 0; i < qs.length; i++) {
+    if (qs[i].id === qid) {
+      var q = qs[i];
+      var cid = 'explain-' + eid + '-' + qid;
+      var el = document.getElementById(cid);
+      if (!el) return;
+      if (el.classList.contains('show')) {
+        el.classList.remove('show');
+        return;
+      }
+      if (st.explanations[eid] && st.explanations[eid][qid]) {
+        el.classList.add('show');
+        el.setAttribute('data-loaded', 'true');
+        el.innerHTML = buildExplainBar(cid) + '<div class="content">' + st.explanations[eid][qid] + '</div>';
+        return;
+      }
+      if (el.getAttribute('data-loading') === 'true') return;
+      el.classList.add('show');
+      el.setAttribute('data-loading', 'true');
+      el.innerHTML = '<div class="loading">⏳ AI 正在解析中...</div>';
+      var opts = [];
+      for (var j = 0; j < (q.options||[]).length; j++) {
+        opts.push(q.options[j][0] + '. ' + q.options[j][1]);
+      }
+      var ca = ga(eid, qid);
+      var ua = (st.answers[eid]||{})[qid] || '';
+      fetch('http://localhost:5001/explain', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          question: q.question || '',
+          options: opts,
+          answer: ca,
+          userAnswer: ua
+        })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        el.setAttribute('data-loading', 'false');
+        el.setAttribute('data-loaded', 'true');
+        if (data.success) {
+          if (!st.explanations[eid]) st.explanations[eid] = {};
+          var safeHtml = escHtml(data.explanation);
+          st.explanations[eid][qid] = safeHtml;
+          save();
+          el.innerHTML = buildExplainBar(cid) + '<div class="content">' + safeHtml + '</div>';
+        } else {
+          el.innerHTML = '<div class="error">' + escHtml(data.explanation) + '</div>';
+        }
+      })
+      .catch(function(err) {
+        el.setAttribute('data-loading', 'false');
+        el.innerHTML = '<div class="error">❌ 连接失败。\n\n请通过以下地址访问：\n  http://localhost:5001/tingzhen\n\n确保服务器已运行：python ai_server.py</div>';
+      });
+      return;
+    }
+  }
+}
+
+function showCachedExplanations(eid, qid) {
+  if (st.explanations[eid] && st.explanations[eid][qid]) {
+    var el = document.getElementById('explain-' + eid + '-' + qid);
+    if (el && !el.classList.contains('show')) {
+      el.classList.add('show');
+      el.setAttribute('data-loaded', 'true');
+      var cid = 'explain-' + eid + '-' + qid;
+      el.innerHTML = buildExplainBar(cid) + '<div class="content">' + st.explanations[eid][qid] + '</div>';
+    }
+  }
+}
+
+function escHtml(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ---- 荧光笔 ----
+var hlActive = null;
+var hlEraseActive = null;
+
+function buildExplainBar(cid) {
+  return '<div class="hl-bar"><button class="hl-btn" onclick="toggleHL(\'' + cid + '\')">🖍 荧光笔</button><button class="hl-btn erase" onclick="toggleErase(\'' + cid + '\')">🧹 擦除</button></div>';
+}
+
+function toggleHL(cid) {
+  var el = document.getElementById(cid);
+  if (!el) return;
+  var btn = el.querySelector('.hl-btn');
+  if (hlActive === cid) {
+    hlActive = null;
+    if (btn) btn.classList.remove('active');
+    var h = el.querySelector('.hl-hint');
+    if (h) h.classList.remove('show');
+    document.body.style.cursor = '';
+    return;
+  }
+  if (hlActive) {
+    var prev = document.getElementById(hlActive);
+    if (prev) {
+      if (prev.querySelector('.hl-btn')) prev.querySelector('.hl-btn').classList.remove('active');
+      if (prev.querySelector('.hl-hint')) prev.querySelector('.hl-hint').classList.remove('show');
+    }
+  }
+  if (hlEraseActive) {
+    var prevErase = document.getElementById(hlEraseActive);
+    if (prevErase) {
+      if (prevErase.querySelector('.hl-btn.erase')) prevErase.querySelector('.hl-btn.erase').classList.remove('active');
+      if (prevErase.querySelector('.hl-hint')) prevErase.querySelector('.hl-hint').classList.remove('show');
+    }
+    hlEraseActive = null;
+  }
+  hlActive = cid;
+  if (btn) btn.classList.add('active');
+  document.body.style.cursor = 'text';
+  var hint = el.querySelector('.hl-hint');
+  if (!hint) {
+    hint = document.createElement('div');
+    hint.className = 'hl-hint show';
+    hint.textContent = '💡 选中文字后松手即可高亮';
+    el.appendChild(hint);
+  } else {
+    hint.textContent = '💡 选中文字后松手即可高亮';
+    hint.classList.add('show');
+  }
+}
+
+function toggleErase(cid) {
+  var el = document.getElementById(cid);
+  if (!el) return;
+  var btn = el.querySelector('.hl-btn.erase');
+  if (hlEraseActive === cid) {
+    hlEraseActive = null;
+    if (btn) btn.classList.remove('active');
+    var h = el.querySelector('.hl-hint');
+    if (h) h.classList.remove('show');
+    document.body.style.cursor = '';
+    return;
+  }
+  if (hlEraseActive) {
+    var prev = document.getElementById(hlEraseActive);
+    if (prev) {
+      if (prev.querySelector('.hl-btn.erase')) prev.querySelector('.hl-btn.erase').classList.remove('active');
+      if (prev.querySelector('.hl-hint')) prev.querySelector('.hl-hint').classList.remove('show');
+    }
+  }
+  if (hlActive) {
+    var prevHL = document.getElementById(hlActive);
+    if (prevHL) {
+      if (prevHL.querySelector('.hl-btn')) prevHL.querySelector('.hl-btn').classList.remove('active');
+      if (prevHL.querySelector('.hl-hint')) prevHL.querySelector('.hl-hint').classList.remove('show');
+    }
+    hlActive = null;
+  }
+  hlEraseActive = cid;
+  if (btn) btn.classList.add('active');
+  document.body.style.cursor = 'pointer';
+  var hint = el.querySelector('.hl-hint');
+  if (!hint) {
+    hint = document.createElement('div');
+    hint.className = 'hl-hint show';
+    hint.textContent = '💡 点击已高亮文字即可擦除';
+    el.appendChild(hint);
+  } else {
+    hint.textContent = '💡 点击已高亮文字即可擦除';
+    hint.classList.add('show');
+  }
+}
+
+document.addEventListener('mouseup', function(e) {
+  if (hlActive) {
+    var el = document.getElementById(hlActive);
+    if (!el) return;
+    var contentEl = el.querySelector('.content');
+    if (!contentEl) return;
+    if (e.target.tagName === 'MARK') {
+      window.getSelection().removeAllRanges();
+      return;
+    }
+    var sel = window.getSelection();
+    if (!sel.rangeCount || sel.isCollapsed) return;
+    var range = sel.getRangeAt(0);
+    if (!contentEl.contains(range.commonAncestorContainer)) return;
+    try {
+      var mark = document.createElement('mark');
+      range.surroundContents(mark);
+      sel.removeAllRanges();
+      var parts = hlActive.split('-');
+      st.explanations[parts[1]][parts[2]] = contentEl.innerHTML;
+      save();
+    } catch(err) {
+      try {
+        var fragment = range.extractContents();
+        var mark = document.createElement('mark');
+        mark.appendChild(fragment);
+        range.insertNode(mark);
+        sel.removeAllRanges();
+        var parts = hlActive.split('-');
+        st.explanations[parts[1]][parts[2]] = contentEl.innerHTML;
+        save();
+      } catch(err2) {}
+    }
+    return;
+  }
+  if (hlEraseActive) {
+    if (e.target.tagName !== 'MARK') return;
+    var el = document.getElementById(hlEraseActive);
+    if (!el) return;
+    var contentEl = el.querySelector('.content');
+    if (!contentEl || !contentEl.contains(e.target)) return;
+    var mk = e.target;
+    var parent = mk.parentNode;
+    while (mk.firstChild) {
+      parent.insertBefore(mk.firstChild, mk);
+    }
+    parent.removeChild(mk);
+    parent.normalize();
+    window.getSelection().removeAllRanges();
+    var parts = hlEraseActive.split('-');
+    st.explanations[parts[1]][parts[2]] = contentEl.innerHTML;
+    save();
+    return;
+  }
+});
+
+function rs() { if (!confirm(S.c1)) return; delete st.answers[st.curExam]; delete st.checked[st.curExam]; delete st.explanations[st.curExam]; delete st.showAnswers[st.curExam]; save(); st.curQ = 0; r(); }
+function ca3() { if (!confirm(S.c2)) return; st.answers = {}; st.checked = {}; st.explanations = {}; st.showAnswers = {}; save(); r(); }
+
+// Toggle show correct answer
+function tsa() {
+  var e = st.curExam, qs = gq(e);
+  if (!qs.length) return;
+  var q = qs[st.curQ];
+  if (!st.showAnswers[e]) st.showAnswers[e] = {};
+  st.showAnswers[e][q.id] = !st.showAnswers[e][q.id];
+  save(); r();
+}
+
+// Load data
+</script>
+<script>
+// Data loaded from inline JSON
+var data = __data;
+Q = data.questions || {};
+A = data.answers || {};
+EN = data.examNames || [];
+document.getElementById('app').innerHTML = '';
+r();
+</script>
+</body>
+</html>
